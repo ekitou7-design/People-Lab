@@ -1,0 +1,33 @@
+.hc-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 250px;
+  height: 100%;
+  padding: 16px 18px 13px;
+  background: #fff;
+  border: 1px solid #cddafa;
+  border-top-color: #d7d0f4;
+  border-radius: 12px;
+  box-shadow: 0 3px 16px rgb(61 100 179 / 5%);
+  font-family: inherit;
+  color: #53627a;
+}
+.hc-card * { box-sizing: border-box; }
+.hc-header { display: flex; align-items: center; gap: 8px; }
+.hc-icon { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 8px; color: #477bf1; background: #eef3ff; }
+.hc-header h2 { margin: 0; color: #34465f; font-size: 14px; font-weight: 650; line-height: 1.5; }
+.hc-badge { margin-left: auto; padding: 3px 6px; border-radius: 4px; color: #9083bb; background: #f4f0ff; font-size: 10px; white-space: nowrap; }
+.hc-intro { margin: 6px 0 11px; color: #93a0b1; font-size: 11px; line-height: 1.5; }
+.hc-prompts { display: flex; gap: 6px; margin-bottom: 12px; }
+.hc-prompt { min-width: 0; flex: 1; padding: 6px 4px; border: 1px solid #e5ebf5; border-radius: 6px; background: #fff; color: #7a89a0; font: inherit; font-size: 11px; line-height: 1.35; cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s; }
+.hc-prompt:hover { border-color: #b9d0fa; background: #f6f9ff; color: #287cf7; }
+.hc-prompt.hc-selected { border-color: #bed4fc; background: #edf4ff; color: #287cf7; }
+.hc-prompt:focus-visible, .hc-navigate:focus-visible { outline: 2px solid #287cf7; outline-offset: 3px; }
+.hc-summary { flex: 1; }
+.hc-summary-text { margin: 0; color: #586b85; font-size: 13px; line-height: 1.7; }
+.hc-detail { margin: 6px 0 0; color: #98a4b4; font-size: 11px; line-height: 1.65; }
+.hc-navigate { display: inline-flex; align-items: center; gap: 3px; margin: 8px 0 0; padding: 0; border: 0; background: transparent; color: #287cf7; font: inherit; font-size: 11px; font-weight: 550; line-height: 1.6; cursor: pointer; }
+.hc-navigate:hover { color: #105ed1; }
+.hc-footer { display: flex; align-items: center; gap: 5px; margin-top: 11px; padding-top: 8px; border-top: 1px solid #eff2f8; color: #a0adbd; font-size: 10px; line-height: 1.5; }
+@media (max-width: 600px) { .hc-card { min-height: 248px; padding: 16px; } }

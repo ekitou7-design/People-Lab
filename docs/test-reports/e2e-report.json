@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "assertions": [
+    "isolated demo starts with three candidates and no employees",
+    "initial HR dashboard fits a 1024px tablet viewport without document-level horizontal overflow",
+    "candidate evidence opens the actual resume source",
+    "HR hiring creates a pending employee without activating the account",
+    "unverified resume evidence is not silently turned into a development deficit",
+    "onboarding activates the employee actor and creates training tasks",
+    "policy answer opens the cited document version and source text",
+    "employee reviews a half-day leave before submission",
+    "pending leave does not deduct the balance",
+    "submitted request survives refresh",
+    "manager approval deducts the balance exactly once",
+    "incomplete scenario is marked for retry rather than passing",
+    "repeated failure reuses the single retry task",
+    "passing retry completes its original task",
+    "dashboard metrics reflect hiring, onboarding and leave approval",
+    "dashboard counts completed original training without inflating totals with retry tasks",
+    "dashboard data persists after refresh",
+    "employee service fits a 390px viewport without document-level horizontal overflow",
+    "HR reset restores the seed without touching the normal demo database",
+    "browser runs without uncaught exceptions: ",
+    "complete flow uses local assets and API only: "
+  ],
+  "screenshots": [
+    "01-resume-evidence.png",
+    "02-policy-citation.png",
+    "03-training-feedback.png",
+    "04-desktop-dashboard.png",
+    "05-mobile-employee-service.png",
+    "06-initial-dashboard.png",
+    "07-tablet-dashboard.png"
+  ]
+}
