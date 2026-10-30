@@ -1,0 +1,722 @@
+{
+  "checkedAt": "2026-10-30T14:58:44.419Z",
+  "minFontSize": 12,
+  "bodySize": 14,
+  "foregroundContrastTarget": 4.8,
+  "files": [
+    {
+      "file": "src/v2/v2.css",
+      "sizeChanges": 70,
+      "colorChanges": [
+        {
+          "selector": "input::placeholder,textarea::placeholder",
+          "from": "#8593a7",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-icon-button",
+          "from": "#64748b",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-badge.amber",
+          "from": "#987020",
+          "to": "#8b6519"
+        },
+        {
+          "selector": ".v2-badge.gray",
+          "from": "#64748b",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-avatar",
+          "from": "#3773cc",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-avatar.amber",
+          "from": "#a07b31",
+          "to": "#8b6519"
+        },
+        {
+          "selector": ".v2-avatar.blue",
+          "from": "#547aab",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-card-header>svg",
+          "from": "#94a3b8",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-page-header .v2-eyebrow",
+          "from": "#8295af",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-notice svg",
+          "from": "#7a9dce",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-notice.success",
+          "from": "#39856c",
+          "to": "#18745b"
+        },
+        {
+          "selector": ".v2-empty",
+          "from": "#7b96b7",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-empty-icon",
+          "from": "#85a5d0",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-empty p",
+          "from": "#748399",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-table thead",
+          "from": "#64748b",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-table th small",
+          "from": "#75859b",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-toast",
+          "from": "#f2f7ff",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-loading",
+          "from": "#64748b",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-boot>span",
+          "from": "#5b8dce",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-boot p",
+          "from": "#7187a4",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-guide-list>button>span",
+          "from": "#95abc8",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-guide-list p",
+          "from": "#7b91af",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-guide-list>button>svg",
+          "from": "#a5b9d4",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-reset-warning",
+          "from": "#bb9564",
+          "to": "#8b6519"
+        },
+        {
+          "selector": ".v2-breadcrumb",
+          "from": "#7a8da9",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-breadcrumb strong",
+          "from": "#5e7596",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-breadcrumb svg",
+          "from": "#9dacc0",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-demo-pill",
+          "from": "#6786aa",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-actor-select",
+          "from": "#9aabc2",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-date",
+          "from": "#8a9cb6",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-metric-item>div",
+          "from": "#75869e",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-metric-item>div>svg",
+          "from": "#a4bada",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-metric-item>strong small",
+          "from": "#8e9db3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-work-filters button",
+          "from": "#72829b",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-task-select strong>span",
+          "from": "#64748b",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-task-select small",
+          "from": "#7486a1",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-queue-note",
+          "from": "#8b9bb3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-queue-note p",
+          "from": "#7185a3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-context-assistant h2 svg",
+          "from": "#7b8ed3",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-context-body>p",
+          "from": "#64748b",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-context-sources>div",
+          "from": "#7b8ea9",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-context-sources>div svg",
+          "from": "#9bb0d1",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-context-rule",
+          "from": "#8295b1",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-compact-empty",
+          "from": "#91a9c8",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-compact-empty strong",
+          "from": "#607899",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-compact-empty p",
+          "from": "#8297b3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-activity-strip>div:first-child",
+          "from": "#8799b3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-activity-strip h2",
+          "from": "#5e7697",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-activity-strip>p",
+          "from": "#94a7c1",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-activity-items strong",
+          "from": "#637d9f",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-activity-items small",
+          "from": "#94a7c1",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-view-switch button",
+          "from": "#7d8ba1",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-candidate-filter>span",
+          "from": "#8a9cb6",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-candidate-row>div>svg",
+          "from": "#b0c1d9",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-candidate-row p",
+          "from": "#7c8fa9",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-candidate-footnote",
+          "from": "#99a9bf",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-filter-empty",
+          "from": "#8da0ba",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-ability-tabs button",
+          "from": "#6d7c91",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-ability-tabs button.unverified",
+          "from": "#a07b32",
+          "to": "#8b6519"
+        },
+        {
+          "selector": ".v2-selected-evidence .v2-evidence-summary",
+          "from": "#657d9d",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-interview-questions li>span",
+          "from": "#8a9cb5",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-evidence-caution",
+          "from": "#99aac2",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-evidence-caution p",
+          "from": "#7487a3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-source-current",
+          "from": "#7293c1",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2-source-footer p",
+          "from": "#768ba9",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-hire-needs legend small",
+          "from": "#8c9cb4",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-hire-needs>p",
+          "from": "#7e90ab",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-hire-needs>label small",
+          "from": "#7488a6",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-comparison-cell>p",
+          "from": "#64748b",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2-mobile-review-tabs>button",
+          "from": "#6e829f",
+          "to": "var(--v2-muted)"
+        }
+      ]
+    },
+    {
+      "file": "src/v2/pages.css",
+      "sizeChanges": 37,
+      "colorChanges": [
+        {
+          "selector": ".v2p-quick-questions button",
+          "from": "#4475bf",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-chat-welcome",
+          "from": "#7590b1",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-message-author",
+          "from": "#7385a0",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-message time",
+          "from": "#98a5b6",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-citation strong",
+          "from": "#397de5",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-citation p",
+          "from": "#7184a1",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-recent-requests h3",
+          "from": "#6c7e99",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-flow-label",
+          "from": "#95a7bd",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-form-summary",
+          "from": "#7488a5",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-leave-idle > p",
+          "from": "#74849c",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-card-footnote",
+          "from": "#91a0b6",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-leave-basis > strong",
+          "from": "#537cb4",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-leave-basis blockquote",
+          "from": "#8095b2",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-detail-list dt",
+          "from": "#8190a7",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-submit-result > svg",
+          "from": "#3487e6",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-service-metrics svg",
+          "from": "#3983e9",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-service-metrics span",
+          "from": "#8090a7",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-managed-requests td small",
+          "from": "#8797ac",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-ticket time",
+          "from": "#8b9bb0",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-queue-item > small",
+          "from": "#7b8ba3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-person-summary dt",
+          "from": "#8999ae",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-subheading > span",
+          "from": "#95a3b6",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-checklist-number",
+          "from": "#a3b1c4",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-checklist-item small",
+          "from": "#91a0b4",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-checklist-item > svg",
+          "from": "#36a77b",
+          "to": "#18745b"
+        },
+        {
+          "selector": ".v2p-onboarding-training > svg",
+          "from": "#427cd6",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-onboarding-training p",
+          "from": "#7890ad",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-task-kind",
+          "from": "#8d9bb0",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-task-select > small",
+          "from": "#7c8da6",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-child-task",
+          "from": "#6987b1",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-task-description",
+          "from": "#7e8fa7",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-training-steps",
+          "from": "#a0aec0",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-training-steps .active",
+          "from": "#477bc3",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-sop-resource > div > svg",
+          "from": "#6592d2",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-sop-resource small",
+          "from": "#93a3b8",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-sop-points",
+          "from": "#7d90ad",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-training-state",
+          "from": "#7d98bb",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-training-state p",
+          "from": "#8699b1",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-training-state.completed > svg",
+          "from": "#36a079",
+          "to": "#18745b"
+        },
+        {
+          "selector": ".v2p-training-state.retry > svg",
+          "from": "#bf9243",
+          "to": "#8b6519"
+        },
+        {
+          "selector": ".v2p-scenario > p",
+          "from": "#8293a9",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-scenario legend small",
+          "from": "#93a3b8",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-option-letter",
+          "from": "#8fa1ba",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-scenario-option small",
+          "from": "#8ea0b7",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-feedback-score",
+          "from": "#b38b43",
+          "to": "#8b6519"
+        },
+        {
+          "selector": ".v2p-feedback-score.passed",
+          "from": "#28996e",
+          "to": "#18745b"
+        },
+        {
+          "selector": ".v2p-feedback-text",
+          "from": "#8294ad",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-missing-steps h4",
+          "from": "#927a50",
+          "to": "#8b6519"
+        },
+        {
+          "selector": ".v2p-missing-steps span",
+          "from": "#ad8e57",
+          "to": "#8b6519"
+        },
+        {
+          "selector": ".v2p-feedback-empty",
+          "from": "#a0b0c6",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-feedback-empty h3",
+          "from": "#7f94af",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-attempt-history summary",
+          "from": "#6b85a7",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-attempt-history article strong",
+          "from": "#5d789a",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-attempt-history time",
+          "from": "#a1b0c3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-attempt-history article > p",
+          "from": "#8da0b7",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-attempt-history blockquote",
+          "from": "#8396b0",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-knowledge-search",
+          "from": "#91a4be",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-document-select",
+          "from": "#5e7fa9",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-document-select small",
+          "from": "#97a8bd",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-document-entry nav button",
+          "from": "#869bb7",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-directory-empty",
+          "from": "#8a9eb7",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-directory-note",
+          "from": "#a0afc3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-reader-header p",
+          "from": "#8297b2",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-document-version strong",
+          "from": "#6f89ab",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-document-version span",
+          "from": "#9aacc3",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-source-label",
+          "from": "#8096b2",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-citation-context",
+          "from": "#5489d2",
+          "to": "var(--v2-primary)"
+        },
+        {
+          "selector": ".v2p-reader-sections p",
+          "from": "#7389a6",
+          "to": "var(--v2-muted)"
+        },
+        {
+          "selector": ".v2p-reader-footer",
+          "from": "#a0aec0",
+          "to": "var(--v2-muted)"
+        }
+      ]
+    }
+  ],
+  "navForegroundAdjustments": [],
+  "offscreenSkipLinkScreenshotArtifactFixed": true,
+  "darkSurfaceException": {
+    "selector": ".v2-toast",
+    "foreground": "#ffffff",
+    "reason": "Deep blue saved-state notification requires light foreground."
+  }
+}

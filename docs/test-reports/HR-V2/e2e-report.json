@@ -1,0 +1,101 @@
+{
+  "status": "passed",
+  "uiVersion": "v2",
+  "baseChecksRetained": 21,
+  "loadedAssets": [
+    "/assets/index-Bwig7Fi0.js",
+    "/assets/index-DDIaqKtP.css"
+  ],
+  "assertions": [
+    "isolated demo starts with three candidates and no employees",
+    "visible desktop dashboard text and controls use at least 12px fonts",
+    "initial HR dashboard fits a 1024px tablet viewport without document-level horizontal overflow",
+    "dashboard assistant opens the actual candidate and evidence task",
+    "candidate evidence opens the actual resume source",
+    "selected ability highlights the matching source section and verbatim quote",
+    "switching abilities updates the source highlight without opening a dialog",
+    "switching candidates replaces the linked resume and removes the old candidate context",
+    "three-column recruitment review fits a 1440px desktop viewport",
+    "recruitment review fits a 1024px tablet viewport",
+    "mobile recruitment source tab keeps the selected candidate and evidence highlight",
+    "visible mobile recruitment text and controls use at least 12px fonts",
+    "recruitment source review fits a 390px phone viewport",
+    "returning from a recruitment SOP preserves the candidate and selected ability",
+    "HR hiring creates a pending employee without activating the account",
+    "unverified resume evidence is not silently turned into a development deficit",
+    "filtering mixed work items updates the assistant to an item inside the active filter",
+    "onboarding activates the employee actor and creates training tasks",
+    "completing the last item in a filter restores all real recruitment and training work items",
+    "policy answer opens the cited document version and source text",
+    "knowledge source returns to the employee service task",
+    "switching roles clears and hides employee-only drafts",
+    "returning to an employee starts with empty private form and chat drafts",
+    "returning from policy evidence preserves the unsent inline leave draft",
+    "employee reviews a half-day leave before submission",
+    "leave preview stays in the current task card without opening a dialog",
+    "editing the inline preview preserves the entered reason and period",
+    "edited content is reflected in the same inline preview",
+    "inline leave processing fits a 1440px desktop viewport",
+    "inline leave processing fits a 1024px tablet viewport",
+    "inline leave processing fits a 390px phone viewport",
+    "visible mobile inline service text and controls use at least 12px fonts",
+    "the same task card displays the actual submitted request ID and result",
+    "a failed refresh after a saved write preserves the real result and warning without resubmitting",
+    "the policy version and verbatim basis remain available during editing, preview and result",
+    "pending leave does not deduct the balance",
+    "submitted request survives refresh",
+    "recent requests reopen the persisted inline result after refresh",
+    "manager approval deducts the balance exactly once",
+    "incomplete scenario is marked for retry rather than passing",
+    "repeated failure reuses the single retry task",
+    "passing retry completes its original task",
+    "completed training fits a 390px phone viewport",
+    "visible mobile training text and controls use at least 12px fonts",
+    "dashboard metrics reflect hiring, onboarding and leave approval",
+    "dashboard counts completed original training without inflating totals with retry tasks",
+    "dashboard data persists after refresh",
+    "employee service fits a 390px viewport without document-level horizontal overflow",
+    "visible mobile employee service text and controls use at least 12px fonts",
+    "HR reset restores the seed without touching the normal demo database",
+    "browser runs without uncaught exceptions: ",
+    "complete flow uses local assets and API only: "
+  ],
+  "screenshots": [
+    "06-initial-dashboard.png",
+    "07-tablet-dashboard.png",
+    "01-resume-evidence.png",
+    "08-v2-recruitment-desktop.png",
+    "09-v2-recruitment-tablet.png",
+    "10-v2-recruitment-mobile.png",
+    "02-policy-citation.png",
+    "11-v2-service-inline-desktop.png",
+    "12-v2-service-inline-tablet.png",
+    "13-v2-service-inline-mobile.png",
+    "03-training-feedback.png",
+    "14-v2-training-mobile.png",
+    "04-desktop-dashboard.png",
+    "05-mobile-employee-service.png"
+  ],
+  "fontAudits": [
+    {
+      "description": "visible desktop dashboard text and controls use at least 12px fonts",
+      "violations": []
+    },
+    {
+      "description": "visible mobile recruitment text and controls use at least 12px fonts",
+      "violations": []
+    },
+    {
+      "description": "visible mobile inline service text and controls use at least 12px fonts",
+      "violations": []
+    },
+    {
+      "description": "visible mobile training text and controls use at least 12px fonts",
+      "violations": []
+    },
+    {
+      "description": "visible mobile employee service text and controls use at least 12px fonts",
+      "violations": []
+    }
+  ]
+}

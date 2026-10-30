@@ -1,16 +1,18 @@
 # People-Lab · HRFlow AI
 
-**HR-V1｜中文企业 HR 本地交互 Demo** · [版本入口](https://github.com/ekitou7-design/People-Lab/releases/tag/HR-V1)
+**HR-V2｜中文企业 HR 协同工作台** · [V2 发布入口](https://github.com/ekitou7-design/People-Lab/releases/tag/HR-V2) · [Figma 可编辑设计](https://www.figma.com/design/EBXWvieYKTM1od7pnZOrwS) · [原 HR-V1 版本](https://github.com/ekitou7-design/People-Lab/releases/tag/HR-V1)
 
 把招聘、入职、员工服务和岗位培训串成同一条人才管理流程：候选人录用后进入入职清单，确认入职后激活员工身份、分配培训；员工可以查询制度、申请年假，主管审批后同步余额和管理驾驶舱。
 
 本版使用 **React + TypeScript + Vite、Node.js + Express、SQLite**。业务操作由后端校验并真实保存；AI 问答、简历证据匹配与培训反馈采用预置材料和固定规则。**无需模型密钥，安装和构建完成后可以离线演示。**
 
-![HRFlow AI 管理驾驶舱](docs/images/dashboard.png)
+![HRFlow AI 人才协同工作台](docs/images/dashboard-v2.png)
 
-界面参考 [Yeeflow HR](https://www.yeeflow.com/hr) 的企业工作台风格，采用深蓝导航、蓝白卡片、招聘漏斗、事务环图和协同助手。图表由当前业务记录生成，不展示虚构的历史趋势或效率提升比例。
+界面延续 [Yeeflow HR](https://www.yeeflow.com/hr) 的蓝白企业风格，围绕当前人员、任务、证据与下一步操作设计。紧凑指标、待办队列与上下文助手共用实际业务记录；招聘能力与简历原文同屏；请假在同一办理卡内填写、预览、提交与追踪，制度依据全程可见。手机支持员工服务与培训，平板支持工作台。
 
-## HR-V1 功能
+Figma 文件包含“01 基础组件”和“02 页面与流程”：六个桌面主页面及关键操作状态、平板工作台、手机员工服务与培训。使用原生中文文本、Auto Layout、颜色变量和组件。演示点击流程从工作台开始；实际业务与数据保存由本地 Demo 执行。详见 [UI v2 验收记录](docs/UI-v2验收记录.md)。本次改版已先备份数据库，未重置已有记录；核对结果见 [数据保留报告](docs/design/data-preservation.json)。
+
+## 本地 Demo 功能
 
 | 模块 | 已实现的操作 |
 | --- | --- |
@@ -21,7 +23,7 @@
 | 岗位培训 | 阅读演示 SOP；完成“不合格品处理”情境演练，按隔离、记录、上报、跟踪四项规则反馈；遗漏后建立复练任务。 |
 | 管理驾驶舱 | 招聘阶段、入职人数、申请状态、培训完成情况、待办与操作时间线；可跳转对应业务页面。 |
 | 企业知识库 | 查看演示请假制度、入职指南、岗位 SOP 的正文、版本和引用片段。 |
-| 演示控制 | HR、主管、员工身份切换；流程引导、示例问题、示范作答；HR 确认后重置演示数据。 |
+| 演示控制 | HR、主管、员工身份切换；流程引导、示例问题、SOP 学习要点；HR 确认后重置演示数据。 |
 
 ```mermaid
 flowchart LR
@@ -37,7 +39,7 @@ flowchart LR
 
 ### 真实业务与模拟 AI 的边界
 
-| 能力 | HR-V1 实现方式 |
+| 能力 | 当前实现方式 |
 | --- | --- |
 | 录用、入职、请假、审批、任务流转 | Express API 执行业务校验，SQLite 事务保存状态。刷新和重启后保留。 |
 | 角色与记录范围 | 后端检查 `x-demo-actor`，区分 HR、主管、员工以及个人／团队记录；属于演示身份机制，未接入真实登录。 |
@@ -163,6 +165,7 @@ npm run dev
 | `npm start` | 启动后端并提供已构建前端。 |
 | `npm test` | 运行接口和状态转换测试，使用临时数据库。 |
 | `npm run test:e2e` | 用 Playwright 实际操作业务闭环，输出报告和截图。 |
+| `npm run test:audit` | 重放 12 组规则问答与 4 类未开放能力边界检查。 |
 
 首次运行浏览器测试时需准备 Chromium：
 
@@ -171,11 +174,12 @@ npx playwright install chromium
 npm test
 npm run build
 npm run test:e2e
+npm run test:audit
 ```
 
 Linux 测试机若缺少浏览器系统依赖，可使用 `npx playwright install --with-deps chromium`；正常运行 Demo 不需要安装测试专用 Chromium。
 
-**HR-V1 验收（2026-10-30）**：生产构建通过，14 项接口测试和 21 项浏览器断言通过；另完成 12 组规则问答与越权请求复测。验证包括角色限制、幂等、余额不足、审批拒绝、培训复练、重启持久化、制度与简历原文、数据重置，以及桌面、1024px 平板和 390px 窄屏布局。
+**UI v2 验收（2026-10-30）**：生产构建通过，14 项接口测试、52 项浏览器检查全部通过，保留原 21 项并增加 31 项；12 组规则问答及 4 类边界检查通过。生成 14 张当前界面截图，验证证据联动、知识往返保留草稿、单卡请假、角色隔离、写入后刷新失败恢复，以及 1440px 桌面、1024px 平板和 390px 手机布局。Figma 包含 16 个原生可编辑画框，设计范围和原型边界见 [设计交付说明](docs/design/README.md)。
 
 端到端测试使用系统临时目录中的独立数据库和随机端口，不修改日常演示数据；报告与截图输出到 `test-results/`。详细范围和边界见 [验收记录](docs/验收记录.md)。以上结果验证本版规则和业务流程，不代表已完成真实模型效果评测。
 
@@ -183,7 +187,7 @@ Linux 测试机若缺少浏览器系统依赖，可使用 `npx playwright instal
 
 ```text
 People-Lab/
-├─ src/                     React 页面、图表、协同助手与样式
+├─ src/v2/                  六个 React 页面、工作区、共享组件与统一样式
 ├─ server/
 │  ├─ app.mjs               API、角色范围及业务规则
 │  ├─ catalog.mjs           虚构岗位、简历、制度和培训场景
@@ -207,4 +211,4 @@ API 说明见 [shared/API.md](shared/API.md)，数据约定见 [shared/contracts
 
 演示身份可从页面切换，`x-demo-actor` 可被调用者指定，不具备生产认证安全性；本版仅面向本机演示，不适合直接开放到互联网。
 
-后续可在现有业务校验与数据关联基础上接入真实模型、文档检索、简历解析、账号认证和外部系统。HR-V1 尚未实现这些能力。
+后续可在现有业务校验与数据关联基础上接入真实模型、文档检索、简历解析、账号认证和外部系统。本地 Demo 尚未实现这些能力。

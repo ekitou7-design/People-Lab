@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-10-30T14:50:10.620Z",
+  "before": {
+    "file": "data/backups/2026-10-30T14-12-46-913Z-before-ui-v2/hrflow.sqlite",
+    "revision": 7,
+    "hash": "425d18810cc4a4dcd3214df6648a64261c79dc235e13bfe00df274c5b14f760e",
+    "idempotencyHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "integrity": {
+      "integrity_check": "ok"
+    },
+    "counts": {
+      "candidates": 3,
+      "employees": 1,
+      "onboardings": 1,
+      "leaves": 0,
+      "trainingTasks": 5,
+      "tickets": 0,
+      "messages": 0,
+      "events": 4
+    }
+  },
+  "after": {
+    "file": "data/hrflow.sqlite",
+    "revision": 7,
+    "hash": "425d18810cc4a4dcd3214df6648a64261c79dc235e13bfe00df274c5b14f760e",
+    "idempotencyHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "integrity": {
+      "integrity_check": "ok"
+    },
+    "counts": {
+      "candidates": 3,
+      "employees": 1,
+      "onboardings": 1,
+      "leaves": 0,
+      "trainingTasks": 5,
+      "tickets": 0,
+      "messages": 0,
+      "events": 4
+    }
+  },
+  "preserved": true,
+  "afterRestart": {
+    "checkedAt": "2026-10-30T15:06:06.332Z",
+    "revision": 7,
+    "hash": "425d18810cc4a4dcd3214df6648a64261c79dc235e13bfe00df274c5b14f760e",
+    "health": {
+      "app": "hrflow-demo",
+      "status": "ok",
+      "mode": "demo"
+    },
+    "servedAssets": [
+      "/assets/index-Bwig7Fi0.js",
+      "/assets/index-DDIaqKtP.css"
+    ],
+    "matchesBackup": true
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-30T15:06:06.333Z",
+  "shell": "Windows PowerShell 5.1",
+  "stop": {
+    "command": "scripts/stop.ps1",
+    "exitCode": 0
+  },
+  "start": {
+    "command": "scripts/start.ps1 -NoBrowser",
+    "exitCode": 0,
+    "url": "http://127.0.0.1:3220"
+  },
+  "dataPreserved": true
+}

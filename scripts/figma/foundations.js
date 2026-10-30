@@ -1,0 +1,43 @@
+// Adapted from figma-generate-library/scripts/createVariableCollection.js.
+const created = [];
+const changed = [];
+const track = node => { created.push(node.id); return node; };
+const color = hex => ({r:parseInt(hex.slice(1,3),16)/255,g:parseInt(hex.slice(3,5),16)/255,b:parseInt(hex.slice(5,7),16)/255});
+for (const style of ['Regular','Medium','Bold']) await figma.loadFontAsync({family:'Noto Sans SC',style});
+await figma.loadFontAsync({family:'Inter',style:'Regular'});
+const foundations = figma.root.children.find(p=>p.id==='0:1');
+await figma.setCurrentPageAsync(foundations);
+foundations.name='01 基础组件'; changed.push(foundations.id);
+const screens=track(figma.createPage());screens.name='02 页面与流程';
+async function createVariableCollection(name,modeNames){const collection=figma.variables.createVariableCollection(name);const first=collection.modes[0];collection.renameMode(first.modeId,modeNames[0]);return {collection,modeId:first.modeId};}
+const primitive=await createVariableCollection('HRFlow / Primitives',['Value']);
+const semantic=await createVariableCollection('HRFlow / Semantic',['Light']);
+const tokens={navy:'#12274D',blue:'#206CE6',blueSoft:'#EDF4FF',canvas:'#F5F7FB',surface:'#FFFFFF',ink:'#1E293B',muted:'#64748B',border:'#E2E8F0',green:'#18745B',greenSoft:'#EAF7F1',amber:'#8B6519',amberSoft:'#FFF5DD',purple:'#7350A5',purpleSoft:'#F2EDFA',red:'#B5434B'};
+const variables={};
+for(const [name,hex] of Object.entries(tokens)){const base=figma.variables.createVariable('color/'+name,primitive.collection,'COLOR');base.scopes=[];base.setValueForMode(primitive.modeId,color(hex));const value=figma.variables.createVariable('color/'+name,semantic.collection,'COLOR');value.scopes=['FRAME_FILL','SHAPE_FILL','TEXT_FILL','STROKE_COLOR'];value.setValueForMode(semantic.modeId,{type:'VARIABLE_ALIAS',id:base.id});value.setVariableCodeSyntax('WEB','var(--v2-'+name+')');variables[name]=value;}
+for(const n of [4,8,12,16,24,32]){const value=figma.variables.createVariable('space/'+n,semantic.collection,'FLOAT');value.scopes=['GAP'];value.setValueForMode(semantic.modeId,n);value.setVariableCodeSyntax('WEB','var(--v2-space-'+n+')');variables['space'+n]=value;}
+for(const n of [8,12]){const value=figma.variables.createVariable('radius/'+n,semantic.collection,'FLOAT');value.scopes=['CORNER_RADIUS'];value.setValueForMode(semantic.modeId,n);value.setVariableCodeSyntax('WEB','var(--v2-radius-'+n+')');variables['radius'+n]=value;}
+const paint=name=>figma.variables.setBoundVariableForPaint({type:'SOLID',color:color(tokens[name])},'color',variables[name]);
+const styles={};
+for(const [name,size,weight] of [['Display',28,'Bold'],['Title',20,'Bold'],['Heading',16,'Medium'],['Body',14,'Regular'],['Label',14,'Medium'],['Caption',12,'Regular']]){const style=figma.createTextStyle();style.name='HRFlow / '+name;style.fontName={family:'Noto Sans SC',style:weight};style.fontSize=size;style.lineHeight={unit:'PERCENT',value:150};styles[name]=style.id;}
+function layout(name,direction,w,h,bg='surface',padding=16,gap=12){const n=track(figma.createAutoLayout(direction));n.name=name;n.resize(w,h);n.primaryAxisSizingMode='FIXED';n.counterAxisSizingMode='FIXED';n.paddingTop=n.paddingBottom=n.paddingLeft=n.paddingRight=padding;n.itemSpacing=gap;n.fills=[paint(bg)];return n;}
+function text(label,style='Body',tone='ink',w=300){const n=track(figma.createText());n.fontName={family:'Noto Sans SC',style:style==='Display'||style==='Title'?'Bold':style==='Heading'||style==='Label'?'Medium':'Regular'};n.characters=label;n.setTextStyleIdAsync?null:null;n.fontSize=style==='Display'?28:style==='Title'?20:style==='Heading'?16:style==='Caption'?12:14;n.lineHeight={unit:'PERCENT',value:150};n.fills=[paint(tone)];n.textAutoResize='HEIGHT';n.resize(w,n.height);return n;}
+const sheet=layout('HRFlow / Foundations','VERTICAL',1120,1050,'canvas',32,24);sheet.x=80;sheet.y=80;foundations.appendChild(sheet);
+sheet.appendChild(text('HRFlow AI · 协同工作台', 'Display','ink',1000));
+sheet.appendChild(text('人 · 任务 · 证据 · 下一步行动','Heading','muted',1000));
+const swatches=layout('Semantic colors','HORIZONTAL',1056,100,'canvas',0,12);sheet.appendChild(swatches);
+for(const name of ['navy','blue','ink','muted','green','amber','purple']){const cell=layout('Color/'+name,'VERTICAL',136,100,'surface',12,8);const chip=track(figma.createRectangle());chip.resize(112,36);chip.cornerRadius=8;chip.fills=[paint(name)];cell.appendChild(chip);cell.appendChild(text(name,'Caption','ink',112));swatches.appendChild(cell);}
+const typography=layout('Typography','VERTICAL',1056,210,'surface',20,8);sheet.appendChild(typography);for(const name of ['Display','Title','Heading','Body','Caption']){const n=text(name+'  人才管理工作台',name,'ink',1000);n.setTextStyleIdAsync?await n.setTextStyleIdAsync(styles[name]):n.textStyleId=styles[name];typography.appendChild(n);}
+const buttonSet=await figma.importComponentSetByKeyAsync('cc8b558dc7d9684011b6b99ce8e6509399bc836b');const inputSet=await figma.importComponentSetByKeyAsync('c28150b04d333d34ed9d2b77abd9f2f54e1a878a');
+const controls=layout('Controls from Simple Design System','HORIZONTAL',1056,120,'surface',20,24);sheet.appendChild(controls);
+const button=track(buttonSet.defaultVariant.createInstance());button.setProperties({'Label#2:0':'确认并继续','Variant':'Primary','State':'Default','Size':'Medium'});button.fills=[paint('blue')];for(const n of button.findAllWithCriteria({types:['TEXT']})){n.fontName={family:'Noto Sans SC',style:'Medium'};n.fontSize=14;}controls.appendChild(button);
+const input=track(inputSet.defaultVariant.createInstance());input.setProperties({'Label#280:41':'请假事由','Value#630:14':'办理个人事务','Has Description#611:20':false});input.resize(360,80);for(const n of input.findAllWithCriteria({types:['TEXT']})){n.fontName={family:'Noto Sans SC',style:'Regular'};n.fontSize=14;}controls.appendChild(input);
+const components={};
+function component(name,w,h,bg='surface'){const n=track(figma.createComponent());n.name='HRFlow / '+name;n.resize(w,h);n.layoutMode='HORIZONTAL';n.primaryAxisSizingMode='FIXED';n.counterAxisSizingMode='FIXED';n.paddingTop=n.paddingBottom=n.paddingLeft=n.paddingRight=12;n.itemSpacing=12;n.counterAxisAlignItems='CENTER';n.fills=[paint(bg)];n.cornerRadius=8;n.setBoundVariable('cornerRadius',variables.radius8);n.description='HRFlow AI 可编辑工作台组件。';foundations.appendChild(n);components[name]=n.id;return n;}
+const specimens=layout('Workflow components','HORIZONTAL',1056,240,'surface',20,24);sheet.appendChild(specimens);
+const badge=component('StatusBadge',108,36,'blueSoft');badge.appendChild(text('待核实','Caption','blue',80));badge.x=1300;badge.y=80;specimens.appendChild(track(badge.createInstance()));
+const task=component('TaskRow',560,80);task.strokes=[paint('border')];const info=layout('Task text','VERTICAL',390,56,'surface',0,3);info.appendChild(text('陈雨桐 · 招聘证据核实','Label','ink',390));info.appendChild(text('质量检验员 · 异常上报仍需面试确认','Caption','muted',390));task.appendChild(info);const taskAction=track(buttonSet.defaultVariant.createInstance());taskAction.setProperties({'Label#2:0':'查看任务','Variant':'Primary'});taskAction.fills=[paint('blue')];task.appendChild(taskAction);task.x=1300;task.y=180;specimens.appendChild(track(task.createInstance()));
+const evidence=component('EvidenceItem',640,96,'blueSoft');const eText=layout('Evidence text','VERTICAL',600,72,'blueSoft',0,6);eText.appendChild(text('图纸识读 · 已有简历证据','Label','ink',590));eText.appendChild(text('“核对图纸版本与尺寸公差”','Body','blue',590));evidence.appendChild(eText);evidence.x=1300;evidence.y=300;
+const panel=component('ContextPanel',336,120,'surface');panel.strokes=[paint('border')];panel.layoutMode='VERTICAL';panel.appendChild(text('当前任务依据','Heading','ink',308));panel.appendChild(text('制度版本、原文引用与下一步操作保持在同一工作区。','Body','muted',308));panel.x=1300;panel.y=440;
+const confirm=component('Confirmation',440,160,'surface');confirm.layoutMode='VERTICAL';confirm.appendChild(text('确认录用候选人','Title','ink',410));confirm.appendChild(text('人工确认后创建待入职档案，培养需求由 HR 选择。','Body','muted',410));const cbtn=track(buttonSet.defaultVariant.createInstance());cbtn.setProperties({'Label#2:0':'确认录用'});cbtn.fills=[paint('blue')];confirm.appendChild(cbtn);confirm.x=1300;confirm.y=600;
+return {createdNodeIds:created,mutatedNodeIds:changed,pages:{foundations:foundations.id,screens:screens.id},collections:{primitive:primitive.collection.id,semantic:semantic.collection.id},variables:Object.fromEntries(Object.entries(variables).map(([k,v])=>[k,v.id])),textStyles:styles,components,imported:{buttonDefault:buttonSet.defaultVariant.id,inputDefault:inputSet.defaultVariant.id},reviewFrame:sheet.id};
