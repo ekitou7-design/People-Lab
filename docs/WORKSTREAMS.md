@@ -101,3 +101,6 @@ W4 的 AI 提取是 P1，可独立延后；没有模型服务时保留人工录�
 - 同时修复 `PATCH /proposals/:id/review` 此前只有前端隐藏表单、服务端未重新校验 stale 的缺口（见 API-CONTRACTS.md 执行规则小节），审核与执行均在服务端重新判定 `demand_stale`。
 
 验证：`npm run build`、`npm test`（36/36）、`npm run test:order2people:e2e`、`npm run test:skillbridge:e2e`（含新增的审批→执行两步校验）、`npm run test:talent-execution:e2e`（新增，内部调配表单约束 + 容量占用 + 需求草稿关联全流程）、`npm run test:audit` 均已本轮执行且通过，详见 PR 描述。未破坏历史 Order2People/SkillBridge 计算快照格式；未清除演示数据，仅通过临时数据库测试。
+
+### 2026-10-31 局部修复认领
+独立工作副本，分支 fix/talent-execution-ux，基于 07d465d。认领 SkillBridge 引擎/API/契约及回归、Workbench 同步、生产表单局部样式与首页入口。保留全部日常数据库和历史快照，不修改共享分支，不自动合并。尚未完成全部验收前不能视为可合并。

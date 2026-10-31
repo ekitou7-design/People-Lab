@@ -212,3 +212,21 @@ test('a stale upstream demand blocks proposal execution even if the proposal was
   assert.equal(reviewAfterStale.status, 409);
   assert.equal(reviewAfterStale.body.error.code, 'DEMAND_STALE');
 });
+
+test('baseline assignment is rejected without reservations; recalculation preserves 10/8/2', async t => {
+  const request = await harness(t, 'talent-ux-baseline-');
+  const { case: c, calc, employeeId } = await openAcceptanceCase(request);
+  assert.deepEqual([calc.totals.demandSeconds, calc.totals.allocatedSeconds, calc.totals.gapSeconds], [36000, 28800, 7200]);
+  const p = c.proposals.find(p => p.path === 'internal_assignment' && p.employeeId === employeeId);
+  const review = await request(`/v1/skillbridge/proposals/${p.id}/review`, { decision: 'hr_approved', note: '仅审核，仍须硬校验', expectedRevision: p.revision, requestKey: 'ux-review' }, 'PATCH');
+  for (const key of ['ux-exec-1', 'ux-exec-2']) {
+    const result = await request(`/v1/skillbridge/proposals/${p.id}/execute`, { expectedRevision: review.body.revision, requestKey: key, managerConfirmedBy: 'actor-manager', riskAcknowledgement: '不替代容量约束' });
+    assert.equal(result.status, 409);
+    assert.equal(result.body.error.code, 'ASSIGNMENT_UNAVAILABLE');
+  }
+  assert.equal((await request('/v1/order2people/reservations')).body.items.length, 0);
+  const revs = Object.fromEntries(await Promise.all(['orders', 'routings', 'qualifications', 'calendars', 'reservations'].map(async k => [k, (await request(`/v1/order2people/${k}`)).body.items.map(v => ({ id: v.id, revision: v.revision }))])));
+  const next = await request('/v1/order2people/calculations', { scope: calc.scope, dailyDemands: calc.lines.map(l => ({ id: l.demandId, orderId: l.orderRef.id, operationId: l.operationId, date: l.date, window: l.window, quantity: l.quantity, batchCount: l.batchCount })), expectedInputRevisions: revs, requestKey: 'ux-recalc' });
+  assert.equal(next.status, 201);
+  assert.deepEqual([next.body.totals.demandSeconds, next.body.totals.allocatedSeconds, next.body.totals.gapSeconds], [36000, 28800, 7200]);
+});

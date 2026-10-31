@@ -141,6 +141,7 @@ export function skillbridgeRouter(store) {
       if (existing) return existing;
       const demand = { ...line, window: line.window };
       const candidates = findInternalCandidates(demand, {
+        allocations: calculation.allocations, orderIds: calculation.lines.map(l => l.orderRef.id),
         employees: state.employees,
         qualifications: state.order2people.qualifications,
         trainingTasks: state.trainingTasks,
@@ -156,7 +157,7 @@ export function skillbridgeRouter(store) {
       const record = {
         id: randomUUID(), revision: 1, calculationId: calculation.id, demandId: fullDemandId,
         demandSnapshot: {
-          positionId: line.positionId, operationId: line.operationId, requirements: line.requirements,
+          orderRef: line.orderRef, positionId: line.positionId, operationId: line.operationId, requirements: line.requirements,
           window: line.window, gapSeconds: line.gapSeconds, sourceRefs: line.sourceRefs,
           inputHash: calculation.inputHash, engineVersion: calculation.engineVersion,
         },
@@ -343,10 +344,24 @@ export function skillbridgeRouter(store) {
     const existing = o2p.reservations.find((r) => r.source?.sourceId === proposal.id);
     if (existing) return { refType: 'capacity_reservation', refId: existing.id, note: '已存在关联容量占用记录，未重复创建', employeeName: employee.name };
     const window = c.demandSnapshot.window;
-    const committedSeconds = Math.round((Date.parse(window.end) - Date.parse(window.start)) / 1000);
+    const calculation = o2p.calculations.find(v => v.id === c.calculationId);
+    const candidate = findInternalCandidates({ ...c.demandSnapshot }, {
+      employees: state.employees, qualifications: o2p.qualifications, trainingTasks: state.trainingTasks,
+      calendars: o2p.calendars, reservations: o2p.reservations, demoEmployeeIds: demoEmployeeIds(state),
+      allocations: calculation.allocations, orderIds: calculation.lines.map(l => l.orderRef.id),
+    }).find(v => v.employeeId === employee.id);
+    const committedSeconds = c.demandSnapshot.gapSeconds;
+    if (candidate?.classification !== 'qualified_verified' || !candidate.capacity.capacityDataComplete
+      || candidate.capacity.availableSecondsInWindow < committedSeconds)
+      fail(409, 'ASSIGNMENT_UNAVAILABLE', '资格或增量容量不足；原分配不能再次用于补缺口');
+    // No segment allocations are persisted by v1. Never invent a partial interval.
+    if (!Number.isSafeInteger(committedSeconds) || committedSeconds <= 0
+      || committedSeconds !== (Date.parse(window.end) - Date.parse(window.start)) / 1000
+      || !c.demandSnapshot.orderRef?.id)
+      fail(409, 'ASSIGNMENT_INTERVAL_REQUIRED', '须补充可核验的实际调配区间及目标订单；当前模型不能安全表达部分时段承诺');
     const reservation = {
       id: `sb-assignment-${proposal.id}`, revision: 1, employeeId: employee.id, window, committedSeconds,
-      sourceOrderId: null, status: 'active',
+      sourceOrderId: c.demandSnapshot.orderRef.id, sourceOperationId: c.demandSnapshot.operationId, status: 'active',
       source: {
         sourceType: 'skillbridge_assignment', sourceId: proposal.id, revision: 1,
         locator: `skillbridge:case:${c.id}:proposal:${proposal.id}`,

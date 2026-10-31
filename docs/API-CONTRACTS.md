@@ -144,8 +144,8 @@ P0 联合计算使用 demo 场地完整聚合中的全部订单、人员档案�
 - 按 `path` 分支，首次执行各创建且仅创建一条对应真实记录，并写入 `proposal.execution={status,refType,refId,executedBy,executedAt,note}`；重复调用返回同一 `refId`，不重复创建：
   - `development_plan` → 在 Training 模块新增一条 `TrainingTask`（`kind=development`，带 `skillBridgeCaseId`/`skillBridgeProposalId` 回链），完成该任务不自动创建或修改 Order2People `EmployeeQualification`。
   - `external_requisition` → 在新增的 `state.skillbridge.requisitions` 集合新增一条 `RecruitmentRequisition` 草稿（岗位、技能要求、窗口、缺口、`linkedCandidateIds` 初始为空），绝不自动生成 `Candidate`；HR 之后在招聘工作台手工关联已有候选人。
-  - `internal_assignment` → 额外要求请求体提供非空 `managerConfirmedBy`（主管确认人）与 `riskAcknowledgement`（风险与原岗位影响说明），否则 400 INVALID_INPUT；通过后在 Order2People `reservations` 集合新增一条 `source.sourceType=skillbridge_assignment` 的 `CapacityReservation`，真实占用该员工在需求窗口内的容量。这会使依赖该容量的计算快照按既有 `invalidate()` 规则变为 stale，须重新计算确认——执行调配必须真正消耗掉它所关闭的缺口，而不是与缺口同时存在。
-- 执行时上游需求已过期：方案的 `execution` 置为 `blocked_stale` 并返回 409 DEMAND_STALE，不创建任何记录。
+  - `internal_assignment` → 额外要求请求体提供非空 `managerConfirmedBy`（主管确认人）与 `riskAcknowledgement`（风险与原岗位影响说明），否则 400 INVALID_INPUT；通过后在 Order2People `reservations` 集合新增一条 `source.sourceType=skillbridge_assignment` 的 `CapacityReservation`，真实占用该员工在需求窗口内的容量。这会使依赖该容量的计算快照按既有 `invalidate()` 规则变为 stale，须重新计算确认——目标订单承诺在同范围联合重算中不作为外部占用双扣；外部订单仍扣除。
+- 执行时上游需求已过期：返回 409 DEMAND_STALE；事务整体回滚，持久方案保持原审核状态（`blocked_stale` 保留为兼容枚举，不承诺失败写入），不创建任何记录。
 - `RecruitmentRequisition`：`PATCH /requisitions/:id` 可修改 `status`（draft/open/closed）与 `linkedCandidateIds`；`linkedCandidateIds` 中的每个 ID 必须引用 `state.candidates` 中已存在的候选人，否则 400 INVALID_INPUT——草稿本身不是候选人，不能替代招聘评审。
 
 | 日期 | 版本 | 变更 | 影响方 | 确认状态 |
@@ -153,3 +153,8 @@ P0 联合计算使用 demo 场地完整聚合中的全部订单、人员档案�
 | 2026-10-31 | SkillBridge v1.0 | 新增 `/api/v1/skillbridge/*`；向后兼容，不改动既有端点语义 | Order2People（只读被消费）、招聘与培训页面（仅导航跳转） | 随 PR 提交，待团队复核；未向外部发送消息 |
 | 2026-10-31 | 第三阶段 人才执行闭环 v1.0 | 新增 `POST /proposals/:id/execute`、`GET/PATCH /requisitions*`；`SkillBridgeProposal` 新增 `execution` 字段；`TrainingTask` 新增可选 `skillBridgeCaseId`/`skillBridgeProposalId`；`PATCH /proposals/:id/review` 补充服务端 stale 校验（原先仅前端隐藏表单）。不改变既有 SkillBridge/Order2People/HR-V2 端点语义，向后兼容 | Training（新增 TrainingTask 写入路径）、Recruitment（新增需求草稿只读+关联写入）、Order2People（新增 CapacityReservation 写入路径，复用既有 invalidate() 语义） | 随 PR 提交，待团队复核；未向外部发送消息 |
 
+
+### 修复分支兼容补充（2026-10-31）
+- SkillBridge 可用容量现指扣除原计算逐人当日分配后的未承诺增量；增加可选净容量、已分配字段。历史 case 不重写；执行读取最新输入重新校验。
+- 调配保留主管确认，资格复用 Order2People 完整窗口、全部类型、等级与来源判定。无增量返回 409 ASSIGNMENT_UNAVAILABLE。部分时段无法由现有日桶分配证明时返回 409 ASSIGNMENT_INTERVAL_REQUIRED，须提供可核验区间后方可执行。不能把窗口长度冒充缺口工时。
+- 新调配占用归属目标订单和工序，沿用 Order2People 同范围订单占用排除规则；外部订单照常扣除。不改变引擎计算语义。

@@ -43,6 +43,8 @@ export type CandidateClassification =
 export interface CandidateCapacitySnapshot {
   /** Sourced from Order2People CapacityCalendar/CapacityReservation for the same demand window; null if unknown. */
   availableSecondsInWindow: number | null;
+  netSecondsInWindow?: number;
+  allocatedSecondsInDay?: number;
   /** Seconds already committed via CapacityReservation inside the demand window; always counted, never re-offered as free capacity. */
   committedSecondsInWindow: number;
   /** True only when both calendar and reservation completeness flags were confirmed for the relevant dates. */
@@ -148,6 +150,7 @@ export interface SkillBridgeCase {
   demandId: string;
   /** Snapshot of the SkillBridgeDemand at case-creation time, for traceability. Not re-fetched live. */
   demandSnapshot: {
+    orderRef?: { id: string; revision: number };
     positionId: string;
     operationId: string;
     requirements: SkillRequirement[];

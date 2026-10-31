@@ -18,6 +18,11 @@ export function availableSeconds(calendar, reservations, window, orderIds) {
     const intersections = work.flatMap(w => blocked.map(b => ({ start: new Date(Math.max(time(w.start), time(b.start))).toISOString(), end: new Date(Math.min(time(w.end), time(b.end))).toISOString() })));
     return unionSeconds(work, window) - unionSeconds(intersections, window);
 }
+export function qualificationCovers(q, requirement, type, employeeId, window) {
+    return q.employeeId === employeeId && q.skillId === requirement.skillId && q.qualificationTypeId === type
+        && q.status === 'verified' && q.level >= requirement.minLevel && !!q.source?.confirmedBy
+        && validWindow(q.validWindow) && contains(q.validWindow, window);
+}
 export function calculate(input) {
     validateCalculationShape(input);
     const { scope, orders, routings, qualifications, calendars, reservations, employees, dailyDemands } = input;
@@ -115,7 +120,7 @@ export function calculate(input) {
                             missing(line.id, 'validWindow', '资格在执行窗口中途生效或失效；须精确拆分后重算');
                     }
                 const eligible = line.requirements.every(r => (r.qualificationTypeIds || []).length > 0 && r.qualificationTypeIds.every(type => {
-                    const q = qualifications.find(q => q.employeeId === employee.id && q.skillId === r.skillId && q.qualificationTypeId === type && q.status === 'verified' && q.level >= r.minLevel && q.source?.confirmedBy && time(q.validWindow.start) <= time(line.window.start) && time(q.validWindow.end) >= time(line.window.end));
+                    const q = qualifications.find(q => qualificationCovers(q, r, type, employee.id, line.window));
                     if (q)
                         refs.push({ id: q.id, revision: q.revision });
                     return !!q;

@@ -1,3 +1,4 @@
+import { availableSeconds, qualificationCovers } from './order2people-engine.mjs';
 // Deterministic skill-rule analysis. No ML/LLM inference is performed here — every
 // classification traces to an EmployeeQualification record (Order2People) or a
 // TrainingTask completion already present in business state. Training completion is
@@ -21,7 +22,7 @@ function overlapSeconds(windowA, windowB) {
  * Classify one employee's qualification evidence against one SkillRequirement.
  * Never produces a numeric confidence score — only a traceable matchKind + evidence refs.
  */
-function matchRequirement(requirement, qualifications, trainingTasks, employeeId) {
+function matchRequirement(requirement, qualifications, trainingTasks, employeeId, window) {
   const relevant = qualifications.filter((q) => q.employeeId === employeeId && q.skillId === requirement.skillId
     && (requirement.qualificationTypeIds || []).includes(q.qualificationTypeId));
   // Prefer the strongest evidence: verified > unverified > revoked.
@@ -45,8 +46,8 @@ function matchRequirement(requirement, qualifications, trainingTasks, employeeId
       summary: `完成培训任务「${task.title}」，完成不代表已具备正式上岗资格，仅作为培养路径参考`,
     });
   }
-  const meetsLevel = best && best.status === 'verified' && best.level >= requirement.minLevel
-    && time(best.validWindow?.end) >= Date.now();
+  const meetsLevel = requirement.qualificationTypeIds?.length > 0 && requirement.qualificationTypeIds.every(type =>
+    qualifications.some(q => qualificationCovers(q, requirement, type, employeeId, window)));
   let matchKind, closingAction;
   if (meetsLevel) { matchKind = 'verified_match'; closingAction = null; }
   else if (best) {
@@ -55,7 +56,7 @@ function matchRequirement(requirement, qualifications, trainingTasks, employeeId
       ? `需由资格维护负责人核实并确认「${requirement.skillId}」资格类型 ${best.qualificationTypeId} 后方可计入正式供给`
       : best.status === 'revoked'
         ? `资格已撤销，须重新评估并取得新的有效资格记录`
-        : `当前等级 ${best.level} 低于岗位要求 ${requirement.minLevel}，需补足等级或重新认证`;
+        : `须核验完整需求窗口、全部必需资格类型、等级及来源；当前证据不足以直接上岗`;
   } else if (relatedTraining.length) {
     matchKind = 'adjacent_skill';
     closingAction = `尚无「${requirement.skillId}」资格记录，仅有培训完成记录；培训通过不等于岗位资质，需安排正式资格核验`;
@@ -83,36 +84,31 @@ function classify(skillGaps) {
  * never re-offered as free "internal supply" (this is the core safety rule requested:
  * do not claim an internal reassignment is safe without checking existing commitments).
  */
-function capacityFor(employeeId, demandWindow, calendars, reservations) {
+function capacityFor(employeeId, demandWindow, calendars, reservations, allocations = [], orderIds = []) {
   const date = demandWindow.start.slice(0, 10);
-  const calendar = calendars.find((c) => c.employeeId === employeeId && c.date === date);
-  if (!calendar) {
-    return { availableSecondsInWindow: null, committedSecondsInWindow: 0, capacityDataComplete: false, note: `无 ${date} 的日历记录，无法判断可用容量` };
-  }
-  const workSeconds = calendar.workIntervals.reduce((n, w) => n + overlapSeconds(w, demandWindow), 0);
-  const absenceSeconds = calendar.absenceIntervals.reduce((n, w) => n + overlapSeconds(w, demandWindow), 0);
-  const activeReservations = reservations.filter((r) => r.employeeId === employeeId && r.status !== 'cancelled');
-  const committedSecondsInWindow = activeReservations.reduce((n, r) => n + overlapSeconds(r.window, demandWindow), 0);
-  const complete = calendar.qualificationsComplete && calendar.reservationsComplete;
-  const availableSecondsInWindow = complete ? Math.max(0, workSeconds - absenceSeconds - committedSecondsInWindow) : null;
-  return {
-    availableSecondsInWindow, committedSecondsInWindow, capacityDataComplete: complete,
-    note: complete
-      ? `${date} 班次 ${Math.round(workSeconds / 3600)}h，休假 ${Math.round(absenceSeconds / 3600)}h，已占用 ${Math.round(committedSecondsInWindow / 3600)}h`
-      : `${date} 日历未确认资格或占用完整性，可用容量不可判定`,
-  };
+  const calendar = calendars.find(c => c.employeeId === employeeId && c.date === date);
+  const complete = !!calendar?.source?.confirmedBy && calendar.qualificationsComplete && calendar.reservationsComplete;
+  if (!complete) return { availableSecondsInWindow: null, committedSecondsInWindow: 0, capacityDataComplete: false, note: '须补全日历、资格与占用完整性确认' };
+  const own = reservations.filter(r => r.employeeId === employeeId);
+  const netSeconds = availableSeconds(calendar, own, demandWindow, orderIds);
+  // Allocations share a daily person budget across every skill and demand.
+  const allocatedSeconds = allocations.filter(a => a.employeeId === employeeId && a.date === date).reduce((n, a) => n + a.allocatedSeconds, 0);
+  const incremental = Math.max(0, netSeconds - allocatedSeconds);
+  return { availableSecondsInWindow: incremental, committedSecondsInWindow: availableSeconds(calendar, [], demandWindow, []) - netSeconds,
+    netSecondsInWindow: netSeconds, allocatedSecondsInDay: allocatedSeconds, capacityDataComplete: true,
+    note: `窗口净容量 ${netSeconds / 3600}h；原计算当日已分配 ${allocatedSeconds / 3600}h；未承诺增量 ${incremental / 3600}h。原分配不能重复补缺口` };
 }
 
 /**
  * Build the InternalCandidate list for one demand's requirements. Only considers active
  * employees already present in business state — never invents a person.
  */
-export function findInternalCandidates(demand, { employees, qualifications, trainingTasks, calendars, reservations, demoEmployeeIds }) {
+export function findInternalCandidates(demand, { employees, qualifications, trainingTasks, calendars, reservations, demoEmployeeIds, allocations = [], orderIds = [] }) {
   const activeEmployees = employees.filter((e) => e.status === 'active');
   return activeEmployees.map((employee) => {
-    const skillGaps = demand.requirements.map((req) => matchRequirement(req, qualifications, trainingTasks, employee.id));
+    const skillGaps = demand.requirements.map((req) => matchRequirement(req, qualifications, trainingTasks, employee.id, demand.window));
     const classification = classify(skillGaps);
-    const capacity = capacityFor(employee.id, demand.window, calendars, reservations);
+    const capacity = capacityFor(employee.id, demand.window, calendars, reservations, allocations, orderIds);
     const requiresManagerConfirmation = [];
     if (skillGaps.some((g) => g.matchKind === 'adjacent_skill')) requiresManagerConfirmation.push('主管须核实未验证或等级不足的资格证据后才能确认可迁移技能');
     if (!capacity.capacityDataComplete) requiresManagerConfirmation.push('须补全该员工日历的资格与占用完整性确认，才能判断是否有可用容量');
@@ -141,7 +137,7 @@ export function buildPathRationales(demand, candidates) {
   for (const c of verifiedWithCapacity) {
     rationales.push({
       path: 'internal_assignment', employeeId: c.employeeId,
-      feasibilityNote: `${c.employeeName} 的资格已验证且满足岗位要求，${demand.window.start.slice(0, 10)} 当日可用容量 ${Math.round((c.capacity.availableSecondsInWindow ?? 0) / 3600)}h，覆盖缺口 ${Math.round(demand.gapSeconds / 3600)}h 后仍有余量，且已扣除既有任务占用。`,
+      feasibilityNote: `${c.employeeName} 的资格已验证且满足岗位要求，${demand.window.start.slice(0, 10)} 当日可用容量 ${Math.round((c.capacity.availableSecondsInWindow ?? 0) / 3600)}h，可提供增量覆盖 ${Math.round(demand.gapSeconds / 3600)}h，仍须核验承诺区间，且已扣除既有任务占用。`,
       risks: ['调配仍需确认原岗位任务不会因此次借调而产生新的能力缺口', '容量数据基于当前日历快照，变化后需重新核验'],
       nextAction: `由主管确认 ${c.employeeName} 原岗位任务不受影响后，在人员排班中落实调配`,
     });
