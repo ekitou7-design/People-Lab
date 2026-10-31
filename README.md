@@ -1,4 +1,4 @@
-# People-Lab · HRFlow AI
+# People-Lab
 
 **HR-V2｜中文企业 HR 协同工作台** · [V2 发布入口](https://github.com/ekitou7-design/People-Lab/releases/tag/HR-V2) · [Figma 可编辑设计](https://www.figma.com/design/EBXWvieYKTM1od7pnZOrwS) · [原 HR-V1 版本](https://github.com/ekitou7-design/People-Lab/releases/tag/HR-V1)
 
@@ -6,7 +6,7 @@
 
 本版使用 **React + TypeScript + Vite、Node.js + Express、SQLite**。业务操作由后端校验并真实保存；AI 问答、简历证据匹配与培训反馈采用预置材料和固定规则。**无需模型密钥，安装和构建完成后可以离线演示。**
 
-![HRFlow AI 人才协同工作台](docs/images/dashboard-v2.png)
+![People-Lab 人才协同工作台](docs/images/dashboard-v2.png)
 
 界面延续 [Yeeflow HR](https://www.yeeflow.com/hr) 的蓝白企业风格，围绕当前人员、任务、证据与下一步操作设计。紧凑指标、待办队列与上下文助手共用实际业务记录；招聘能力与简历原文同屏；请假在同一办理卡内填写、预览、提交与追踪，制度依据全程可见。手机支持员工服务与培训，平板支持工作台。
 
@@ -213,7 +213,7 @@ API 说明见 [shared/API.md](shared/API.md)，数据约定见 [shared/contracts
 
 后续可在现有业务校验与数据关联基础上接入真实模型、文档检索、简历解析、账号认证和外部系统。本地 Demo 尚未实现这些能力。
 
-## TalentFoundry / Order2People 第一阶段
+## People-Lab · Order2People 第一阶段
 
 新增“生产需求与能力”入口，保留 HR-V2 原有功能。人工订单/工艺/资格/日历/占用 → 共享人员容量诊断 → HR 确认 → SkillBridge JSON。无 AI 模型接入，不推断招聘人数。
 

@@ -50,8 +50,8 @@ process.once('SIGINT', () => stop());
 process.once('SIGTERM', () => stop());
 process.once('SIGHUP', () => stop());
 
-console.log('HRFlow API: http://127.0.0.1:3220');
-console.log('HRFlow development UI: http://127.0.0.1:3221');
+console.log('People-Lab API: http://127.0.0.1:3220');
+console.log('People-Lab development UI: http://127.0.0.1:3221');
 console.log('Press Ctrl+C to stop both services.');
 launch('api', path.join(root, 'server', 'index.mjs'), [], { PORT: '3220' });
 launch('vite', path.join(root, 'node_modules', 'vite', 'bin', 'vite.js'), [

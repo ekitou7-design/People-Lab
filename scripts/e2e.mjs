@@ -382,7 +382,7 @@ try {
   check(blockedRequests.length === 0, `complete flow uses local assets and API only: ${blockedRequests.join('; ')}`);
   await writeFile(path.join(outputDir, 'e2e-report.json'), JSON.stringify({ status: 'passed', uiVersion: 'v2', baseChecksRetained: 21, loadedAssets, assertions, screenshots, fontAudits }, null, 2));
   await rm(path.join(outputDir, 'failure.png'), { force: true });
-  console.log(`HRFlow browser acceptance passed. Screenshots: ${outputDir}`);
+  console.log(`People-Lab browser acceptance passed. Screenshots: ${outputDir}`);
 } catch (error) {
   await mkdir(outputDir, { recursive: true });
   if (page) await screenshot('failure.png').catch(() => {});
