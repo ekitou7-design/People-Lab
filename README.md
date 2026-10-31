@@ -218,3 +218,16 @@ API 说明见 [shared/API.md](shared/API.md)，数据约定见 [shared/contracts
 新增“生产需求与能力”入口，保留 HR-V2 原有功能。人工订单/工艺/资格/日历/占用 → 共享人员容量诊断 → HR 确认 → SkillBridge JSON。无 AI 模型接入，不推断招聘人数。
 
 演示、限制、验证和交付状态见 [Order2People 交付记录](docs/ORDER2PEOPLE-DELIVERY.md)，字段及端点见 [API 契约](docs/API-CONTRACTS.md)。新增浏览器检查：`npm run test:order2people:e2e`；使用已安装 Chrome 时可设置 `PLAYWRIGHT_CHANNEL=chrome`。
+
+## SkillBridge · 第二阶段
+
+只读消费已确认的 Order2People 能力缺口：内部人才证据分类（已验证/潜在可迁移/证据不足）、技能差距与可用容量、内部调配/内部培养/外部招聘三类路径建议，HR 审核留痕。新增浏览器检查：`npm run test:skillbridge:e2e`。
+
+## 人才执行闭环 · 第三阶段
+
+HR 对已批准的 SkillBridge 方案执行真实写入，而非仅跳转页面：
+- 内部培养 → 在培训工作台创建真实培训任务，回链原分析；完成任务不自动等于岗位资质，仍需人工核验。
+- 外部招聘 → 在招聘工作台生成招聘需求草稿，HR 手工关联已有候选人；不自动生成候选人。
+- 内部调配 → 须填写主管确认人与风险说明后，在生产需求模块写入真实容量占用，原计算结果据此过期并需重新计算确认。
+
+字段及端点见 [API 契约](docs/API-CONTRACTS.md)，分工与授权记录见 [分工](docs/WORKSTREAMS.md)。新增浏览器检查：`npm run test:talent-execution:e2e`。

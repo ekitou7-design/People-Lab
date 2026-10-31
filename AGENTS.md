@@ -1,11 +1,11 @@
 # People-Lab 协作入口
 
-People-Lab Order2People 第一阶段交付候选；HR-V2 保留。验收证据与演示见 docs/ORDER2PEOPLE-DELIVERY.md。
+People-Lab：阶段一 Order2People、阶段二 SkillBridge、阶段三人才执行闭环（SkillBridge 方案执行为招聘需求草稿/培训任务/内部调配占用）均已实现，HR-V2 保留。验收证据与演示见 docs/ORDER2PEOPLE-DELIVERY.md 及各阶段 PR 描述。
 
 ## 开始前
 - 阅读 [产品定位](docs/PRODUCT.md) → [阶段一 PRD](docs/PHASE-1-PRD.md) → [数据与接口](docs/API-CONTRACTS.md) → [分工](docs/WORKSTREAMS.md)。现有运行说明见 README.md，现有 API 以 shared/API.md、shared/contracts.ts 和服务端实现为准。
 - 检查当前目录、Git 状态、远程 main、开放 PR 和文件认领。记录本轮允许修改的文件；发现队友修改或归属冲突，先报告并协调。
-- 用户 Goal 已授权第一阶段开发、测试与 PR；当前认领见 WORKSTREAMS。进入 SkillBridge 实现仍须另行授权。
+- 用户 Goal 已逐阶段授权开发、测试与 PR；当前认领见 WORKSTREAMS。后续模块（Capability Graph、Talent Simulator、Talent Agent 自动执行）仍须另行授权。
 
 ## Git 与范围
 - 每位开发者使用独立分支，通过 PR 合并；禁止直接修改或推送 main、强推共享分支、覆盖他人修改。

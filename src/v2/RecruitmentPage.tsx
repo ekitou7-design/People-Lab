@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { IconArrowLeft, IconArrowRight, IconArrowUpRight, IconBook2, IconCheck, IconChevronRight, IconFileText, IconLayoutColumns, IconLink, IconListDetails, IconShieldCheck, IconUserPlus } from '@tabler/icons-react';
+import { IconArrowLeft, IconArrowRight, IconArrowUpRight, IconBook2, IconBriefcase, IconCheck, IconChevronRight, IconFileText, IconLayoutColumns, IconLink, IconListDetails, IconShieldCheck, IconUserPlus } from '@tabler/icons-react';
 import type { Candidate, Employee, Evidence } from '../../shared/contracts';
+import type { RecruitmentRequisition } from '../../shared/skillbridge';
 import type { PageProps } from './types';
 import { Avatar, Dialog, EmptyState, HighlightText, PageHeader, StatusBadge, type Tone } from './ui';
 
@@ -8,6 +9,9 @@ type StageFilter = Candidate['stage'] | 'all';
 const stageLabels: Record<Candidate['stage'], string> = { screening: '待筛选', interview: '待面试', decision: '待决策', hired: '已录用' };
 const evidenceLabels: Record<Evidence['status'], string> = { supported: '已有证据', unverified: '待核实', gap: '确认待提升' };
 const evidenceTones: Record<Evidence['status'], Tone> = { supported: 'green', unverified: 'amber', gap: 'purple' };
+const requisitionStatusLabels = { draft: '待处理', open: '招聘中', closed: '已关闭' } as const;
+const requisitionStatusTones: Record<string, Tone> = { draft: 'amber', open: 'blue', closed: 'gray' };
+const sbBase = '/api/v1/skillbridge';
 
 export function RecruitmentPage({ data, busy, mutate, navigate, openKnowledge, focus }: PageProps) {
   const [candidateId, setCandidateId] = useState(focus?.candidateId || 'cand-chen');
@@ -20,12 +24,40 @@ export function RecruitmentPage({ data, busy, mutate, navigate, openKnowledge, f
   const [localError, setLocalError] = useState('');
   const [notice, setNotice] = useState('');
   const [draftStage, setDraftStage] = useState<'screening' | 'interview' | 'decision'>('screening');
+  const [requisitions, setRequisitions] = useState<RecruitmentRequisition[]>([]);
+  const [requisitionError, setRequisitionError] = useState('');
+  const [linkCandidateDraft, setLinkCandidateDraft] = useState<Record<string, string>>({});
   const sourceRef = useRef<HTMLDivElement>(null);
   const candidates = stageFilter === 'all' ? data.candidates : data.candidates.filter(item => item.stage === stageFilter);
   const candidate = candidates.find(item => item.id === candidateId) || candidates[0];
   const ability = data.position.abilities.find(item => item.id === abilityId) || data.position.abilities[0];
   const selectedEvidence = candidate?.evidence.find(item => item.abilityId === ability?.id);
   const sourceSection = candidate?.resume.sections.find(item => item.id === selectedEvidence?.sectionId);
+
+  async function refreshRequisitions() {
+    try {
+      const r = await fetch(`${sbBase}/requisitions`, { headers: { 'x-demo-actor': data.actor.id } });
+      const v = await r.json();
+      if (!r.ok) throw new Error(v.error?.message || '招聘需求草稿加载失败');
+      setRequisitions(v.items);
+    } catch (e) { setRequisitionError(e instanceof Error ? e.message : '招聘需求草稿加载失败'); }
+  }
+  // SkillBridge-originated requisition drafts are fetched independently, same pattern as
+  // SkillBridgePage fetching Order2People data: additive, never folded into bootstrap.
+  useEffect(() => { if (data.actor.role === 'hr') void refreshRequisitions(); }, [data.actor.id]);
+
+  async function updateRequisition(requisition: RecruitmentRequisition, patch: { status?: RecruitmentRequisition['status']; linkedCandidateIds?: string[] }) {
+    setRequisitionError('');
+    try {
+      const r = await fetch(`${sbBase}/requisitions/${requisition.id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json', 'x-demo-actor': data.actor.id },
+        body: JSON.stringify({ ...patch, expectedRevision: requisition.revision, requestKey: crypto.randomUUID() }),
+      });
+      const v = await r.json();
+      if (!r.ok) throw new Error(v.error?.message || '招聘需求草稿更新失败');
+      await refreshRequisitions();
+    } catch (e) { setRequisitionError(e instanceof Error ? e.message : '招聘需求草稿更新失败'); }
+  }
 
   useEffect(() => {
     if (focus?.candidateId) { setCandidateId(focus.candidateId); setStageFilter(focus.stage || 'all'); }
@@ -71,6 +103,32 @@ export function RecruitmentPage({ data, busy, mutate, navigate, openKnowledge, f
     <PageHeader title="招聘证据审阅" description={`${data.position.department} / ${data.position.title} · 逐项核实岗位要求，保留人工决策。`} actions={<div className="v2-view-switch" role="group" aria-label="招聘审阅视图"><button className={mode === 'review' ? 'selected' : ''} aria-pressed={mode === 'review'} onClick={() => setMode('review')}><IconLayoutColumns size={15} />证据审阅</button><button className={mode === 'compare' ? 'selected' : ''} aria-pressed={mode === 'compare'} onClick={() => setMode('compare')}><IconListDetails size={15} />候选人比较</button></div>} />
     {notice && <div className="v2-notice success" role="status"><IconCheck size={16} />{notice}</div>}
     {localError && !hireOpen && <div className="v2-form-error" role="alert">{localError}</div>}
+
+    {requisitions.length > 0 && <section className="v2-card v2-requisition-panel">
+      <div className="v2-card-header"><div><h2><IconBriefcase size={16} />来自 SkillBridge 的招聘需求草稿</h2><p>由能力缺口分析生成，非正式招聘申请；请人工关联已有候选人或在完成评估后关闭</p></div></div>
+      {requisitionError && <p className="v2-form-error" role="alert">{requisitionError}</p>}
+      <div className="v2-requisition-list">
+        {requisitions.map(requisition => <div className="v2-requisition-row" key={requisition.id}>
+          <div><strong>{requisition.operationId}</strong><small>{requisition.positionId} · 缺口 {(requisition.gapSeconds / 3600).toFixed(1)}h</small><small>{requisition.skillRequirements.map(r => `${r.skillId} ≥ L${r.minLevel}`).join('；')}</small></div>
+          <StatusBadge tone={requisitionStatusTones[requisition.status]}>{requisitionStatusLabels[requisition.status]}</StatusBadge>
+          <p className="v2-requisition-note">{requisition.note}</p>
+          <div className="v2-requisition-links">
+            <span>已关联候选人：{requisition.linkedCandidateIds.length ? requisition.linkedCandidateIds.map(id => data.candidates.find(c => c.id === id)?.name || id).join('、') : '暂无'}</span>
+            {requisition.status !== 'closed' && <div className="v2-requisition-link-form">
+              <select aria-label="选择要关联的候选人" value={linkCandidateDraft[requisition.id] || ''} onChange={e => setLinkCandidateDraft(current => ({ ...current, [requisition.id]: e.target.value }))}>
+                <option value="">选择候选人…</option>
+                {data.candidates.filter(c => !requisition.linkedCandidateIds.includes(c.id)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <button className="v2-button secondary compact" disabled={busy || !linkCandidateDraft[requisition.id]} onClick={() => { const id = linkCandidateDraft[requisition.id]; if (id) void updateRequisition(requisition, { status: requisition.status === 'draft' ? 'open' : requisition.status, linkedCandidateIds: [...requisition.linkedCandidateIds, id] }); }}><IconLink size={13} />关联</button>
+            </div>}
+          </div>
+          <div className="v2-requisition-actions">
+            {requisition.status === 'draft' && <button className="v2-button secondary compact" disabled={busy} onClick={() => void updateRequisition(requisition, { status: 'open' })}>标记为招聘中</button>}
+            {requisition.status !== 'closed' && <button className="v2-button secondary compact" disabled={busy} onClick={() => void updateRequisition(requisition, { status: 'closed' })}>关闭需求</button>}
+          </div>
+        </div>)}
+      </div>
+    </section>}
     {mode === 'compare' ? <section className="v2-card v2-compare-panel"><div className="v2-card-header"><div><h2>按同一套岗位标准比较</h2><p>未写明的能力保持待核实，点击单项回到原文审阅</p></div><button className="v2-button secondary compact" onClick={() => setMode('review')}><IconArrowLeft size={14} />返回证据审阅</button></div><div className="v2-table-scroll"><table className="v2-table v2-compare-table"><thead><tr><th>岗位能力与要求</th>{data.candidates.map(item => <th key={item.id}><span className="v2-table-person"><Avatar name={item.name} color={item.color} small />{item.name}</span></th>)}</tr></thead><tbody>{data.position.abilities.map(item => <tr key={item.id}><th><strong>{item.name}</strong><small>{item.requirement}</small></th>{data.candidates.map(person => { const evidence = person.evidence.find(evidence => evidence.abilityId === item.id); return <td key={person.id}>{evidence && <button className="v2-comparison-cell" onClick={() => { setCandidateId(person.id); setAbilityId(item.id); setStageFilter('all'); setMode('review'); navigate({ page: 'recruitment', candidateId: person.id, abilityId: item.id, stage: 'all' }); }}><StatusBadge tone={evidenceTones[evidence.status]}>{evidenceLabels[evidence.status]}</StatusBadge><p>{evidence.summary}</p><span>核对原文<IconArrowUpRight size={13} /></span></button>}</td>; })}</tr>)}</tbody></table></div></section> : <>
       <div className="v2-recruitment-layout">
         <aside className="v2-card v2-candidate-queue"><div className="v2-card-header"><div><h2>候选人队列</h2><p>{data.candidates.length} 位候选人</p></div></div><label className="v2-candidate-filter"><span>招聘阶段</span><select aria-label="筛选候选人阶段" value={stageFilter} onChange={event => chooseStage(event.target.value as StageFilter)}><option value="all">全部阶段</option><option value="screening">待筛选</option><option value="interview">待面试</option><option value="decision">待决策</option><option value="hired">已录用</option></select></label><div className="v2-candidate-list">{candidates.length ? candidates.map(item => <button key={item.id} aria-label={`查看${item.name}档案`} aria-pressed={candidate?.id === item.id} className={`v2-candidate-row ${candidate?.id === item.id ? 'selected' : ''}`} onClick={() => chooseCandidate(item.id)}><div><Avatar name={item.name} color={item.color} small /><strong>{item.name}</strong><IconChevronRight size={13} /></div><p>{item.experience}</p><StatusBadge tone={item.stage === 'hired' ? 'green' : 'blue'}>{stageLabels[item.stage]}</StatusBadge></button>) : <div className="v2-filter-empty"><p>当前阶段没有候选人</p><button className="v2-button secondary compact" onClick={() => chooseStage('all')}>查看全部</button></div>}</div><div className="v2-candidate-footnote"><IconShieldCheck size={15} /><span>虚构简历 · 规则模拟分析<br />招聘决定由 HR 确认</span></div></aside>
