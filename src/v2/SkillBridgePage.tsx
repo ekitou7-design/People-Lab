@@ -80,7 +80,7 @@ export function SkillBridgePage({ data, navigate, focus }: PageProps) {
   }
 
   return <section className="sb-page">
-    <PageHeader eyebrow="TalentFoundry · 第二阶段" title="SkillBridge · 能力供给分析"
+    <PageHeader eyebrow="People-Lab · SkillBridge 第二阶段" title="SkillBridge · 能力供给分析"
       description="只读消费 Order2People 已确认需求：内部有没有合适的人？没有现成人选时谁具备可迁移技能？什么时候必须考虑外部招聘？"
       actions={data.actor.role === 'hr' && <button className="v2-button secondary compact" disabled={busy} onClick={() => void act(async () => { await request(`${sbBase}/demo/reset`, { requestKey: crypto.randomUUID() }); })}>载入内部人才演示样例</button>} />
     <p className="v2-notice"><IconShieldCheck size={17} />技能匹配基于已验证资格与人工证据，不使用大模型推理；培训完成或简历关键词不会被当作正式资格。</p>
