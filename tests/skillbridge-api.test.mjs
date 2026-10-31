@@ -2,9 +2,54 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { createApp } from '../server/app.mjs';
 import { fixture } from './order2people-fixture.mjs';
+
+function createTestLifecycle(t, dataDir) {
+  const resources = [];
+  // Register before opening any instance, including those used by restart assertions.
+  t.after(async () => {
+    const errors = [];
+    // Drain every HTTP server before closing any store that its handlers could use.
+    for (const { server } of resources) {
+      if (!server) continue;
+      try {
+        await new Promise((resolveClosed, reject) => {
+          server.close(error => error && error.code !== 'ERR_SERVER_NOT_RUNNING' ? reject(error) : resolveClosed());
+          server.closeIdleConnections?.();
+        });
+      } catch (error) { errors.push(error); }
+    }
+    for (const { instance } of resources) {
+      try { instance.close(); } catch (error) { errors.push(error); }
+    }
+    try {
+      const directory = resolve(dataDir);
+      assert.equal(dirname(directory), resolve(tmpdir()), 'only remove this test’s direct temporary directory');
+      assert.ok(basename(directory).startsWith('skillbridge-'), 'only remove this test’s SkillBridge directory');
+      rmSync(directory, { recursive: true, force: true });
+    } catch (error) { errors.push(error); }
+    if (errors.length) throw new AggregateError(errors, 'Failed to clean up SkillBridge test resources');
+  });
+
+  return {
+    async start() {
+      const instance = createApp({ dataDir });
+      const resource = { instance, server: undefined };
+      resources.push(resource);
+      const server = instance.app.listen(0, '127.0.0.1');
+      resource.server = server;
+      await new Promise((resolveReady, reject) => {
+        const onListening = () => { server.off('error', onError); resolveReady(); };
+        const onError = error => { server.off('listening', onListening); reject(error); };
+        server.once('listening', onListening);
+        server.once('error', onError);
+      });
+      return resource;
+    },
+  };
+}
 
 /**
  * Covers the required acceptance story end to end:
@@ -22,14 +67,8 @@ import { fixture } from './order2people-fixture.mjs';
  */
 test('SkillBridge reads confirmed Order2People demands, classifies internal candidates, and gates stale input', async (t) => {
   const dir = mkdtempSync(join(tmpdir(), 'skillbridge-'));
-  const instance = createApp({ dataDir: dir });
-  const server = instance.app.listen(0, '127.0.0.1');
-  await new Promise((resolve) => server.once('listening', resolve));
-  t.after(async () => {
-    await new Promise((resolve) => server.close(resolve));
-    instance.close();
-    rmSync(dir, { recursive: true, force: true });
-  });
+  const lifecycle = createTestLifecycle(t, dir);
+  const { instance, server } = await lifecycle.start();
   async function request(path, body, method = 'POST', actor = 'actor-hr') {
     const r = await fetch(`http://127.0.0.1:${server.address().port}/api${path}`, {
       method: body ? method : 'GET',
@@ -136,19 +175,14 @@ test('SkillBridge reads confirmed Order2People demands, classifies internal cand
   // --- Review survives a server restart (persistence check).
   await new Promise((resolve) => server.close(resolve));
   instance.close();
-  const instance2 = createApp({ dataDir: dir });
-  const server2 = instance2.app.listen(0, '127.0.0.1');
-  await new Promise((resolve) => server2.once('listening', resolve));
+  const { instance: instance2, server: server2 } = await lifecycle.start();
   const persistedCase = await fetch(`http://127.0.0.1:${server2.address().port}/api${sb}/cases/${skillCase.id}`, { headers: { 'x-demo-actor': 'actor-hr' } }).then((r) => r.json());
   assert.equal(persistedCase.proposals.find((p) => p.id === devProposal.id).status, 'hr_approved');
   await new Promise((resolve) => server2.close(resolve));
   instance2.close();
 
   // --- Resume on the original port/instance equivalent for the rest of the test.
-  const instance3 = createApp({ dataDir: dir });
-  const server3 = instance3.app.listen(0, '127.0.0.1');
-  await new Promise((resolve) => server3.once('listening', resolve));
-  t.after(async () => { await new Promise((resolve) => server3.close(resolve)); instance3.close(); });
+  const { server: server3 } = await lifecycle.start();
   async function request3(path, body, method = 'POST', actor = 'actor-hr') {
     const r = await fetch(`http://127.0.0.1:${server3.address().port}/api${path}`, {
       method: body ? method : 'GET', headers: { 'Content-Type': 'application/json', 'x-demo-actor': actor },
@@ -181,10 +215,8 @@ test('SkillBridge reads confirmed Order2People demands, classifies internal cand
 
 test('SkillBridge never classifies an employee with zero evidence as a candidate, and capacity already committed is not re-offered', async (t) => {
   const dir = mkdtempSync(join(tmpdir(), 'skillbridge-capacity-'));
-  const instance = createApp({ dataDir: dir });
-  const server = instance.app.listen(0, '127.0.0.1');
-  await new Promise((resolve) => server.once('listening', resolve));
-  t.after(async () => { await new Promise((resolve) => server.close(resolve)); instance.close(); rmSync(dir, { recursive: true, force: true }); });
+  const lifecycle = createTestLifecycle(t, dir);
+  const { server } = await lifecycle.start();
   async function request(path, body, method = 'POST', actor = 'actor-hr') {
     const r = await fetch(`http://127.0.0.1:${server.address().port}/api${path}`, {
       method: body ? method : 'GET', headers: { 'Content-Type': 'application/json', 'x-demo-actor': actor },
