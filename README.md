@@ -1,8 +1,24 @@
 # People-Lab
 
-**HR-V2｜中文企业 HR 协同工作台** · [V2 发布入口](https://github.com/ekitou7-design/People-Lab/releases/tag/HR-V2) · [Figma 可编辑设计](https://www.figma.com/design/EBXWvieYKTM1od7pnZOrwS) · [原 HR-V1 版本](https://github.com/ekitou7-design/People-Lab/releases/tag/HR-V1)
+## 从这里开始（2026-10-31 当前交付）
 
-把招聘、入职、员工服务和岗位培训串成同一条人才管理流程：候选人录用后进入入职清单，确认入职后激活员工身份、分配培训；员工可以查询制度、申请年假，主管审批后同步余额和管理驾驶舱。
+|你要做什么|直接阅读|
+|---|---|
+|评委第一次上手|[评委快速上手](docs/JUDGES-QUICKSTART.md)：启动、实际点击、预期结果与边界|
+|操作完整业务|[使用说明](docs/USER-GUIDE.md)：订单→缺口→人工审核→执行反馈|
+|队友继续开发|[移交文档](docs/HANDOFF.md)：代码责任、提交、输入版本与接手清单|
+|交给队友的Agent|[AGENTS.md](AGENTS.md)：保护数据、权限、接口与验收规则|
+|查证本轮测试|[验证记录](docs/VALIDATION.md)：50项接口、浏览器及未覆盖范围|
+|查找全部说明|[文档导航](docs/README.md)：区分当前规则与历史记录|
+
+标准样例是10h需求、8h已分配、2h缺口。同一8h不能重复补缺口；正式新增有效供给后需重新计算和确认，已验证示例为10/10/0。培训完成不等于正式资格。部分时段调配无法证明区间时会明确阻断，不宣称分钟级排程已完成。当前问答和分析为规则演示，无需模型密钥。
+
+统一集成入口为 [PR #5](https://github.com/ekitou7-design/People-Lab/pull/5)，包含 [PR #4](https://github.com/ekitou7-design/People-Lab/pull/4) 的依赖提交与修复；以GitHub状态判断是否已合并。旧HR-V2发布包不包含本轮全部能力，体验最新版请使用main源码，按下面步骤构建。
+
+
+**People-Lab｜订单能力缺口与人才执行协同** · [V2 发布入口](https://github.com/ekitou7-design/People-Lab/releases/tag/HR-V2) · [Figma 可编辑设计](https://www.figma.com/design/EBXWvieYKTM1od7pnZOrwS) · [原 HR-V1 版本](https://github.com/ekitou7-design/People-Lab/releases/tag/HR-V1)
+
+从生产订单识别能力缺口，经 HR 审核进入培养任务、招聘需求草稿或受约束的调配核验，并保留招聘、入职、员工服务和岗位培训流程：候选人录用后进入入职清单，确认入职后激活员工身份、分配培训；员工可以查询制度、申请年假，主管审批后同步余额和管理驾驶舱。
 
 本版使用 **React + TypeScript + Vite、Node.js + Express、SQLite**。业务操作由后端校验并真实保存；AI 问答、简历证据匹配与培训反馈采用预置材料和固定规则。**无需模型密钥，安装和构建完成后可以离线演示。**
 
@@ -167,17 +183,16 @@ npm run dev
 | `npm run test:e2e` | 用 Playwright 实际操作业务闭环，输出报告和截图。 |
 | `npm run test:audit` | 重放 12 组规则问答与 4 类未开放能力边界检查。 |
 
-首次运行浏览器测试时需准备 Chromium：
+本轮 Mac 验收使用已安装的 Chrome，无需下载 Chromium：
 
 ```sh
-npx playwright install chromium
 npm test
 npm run build
-npm run test:e2e
+PLAYWRIGHT_CHANNEL=chrome npm run test:e2e
 npm run test:audit
 ```
 
-Linux 测试机若缺少浏览器系统依赖，可使用 `npx playwright install --with-deps chromium`；正常运行 Demo 不需要安装测试专用 Chromium。
+其他测试环境需自行准备兼容浏览器；本轮没有下载 Chromium。正常运行 Demo 不需要 Playwright 测试浏览器。
 
 **UI v2 验收（2026-10-30）**：生产构建通过，14 项接口测试、52 项浏览器检查全部通过，保留原 21 项并增加 31 项；12 组规则问答及 4 类边界检查通过。生成 14 张当前界面截图，验证证据联动、知识往返保留草稿、单卡请假、角色隔离、写入后刷新失败恢复，以及 1440px 桌面、1024px 平板和 390px 手机布局。Figma 包含 16 个原生可编辑画框，设计范围和原型边界见 [设计交付说明](docs/design/README.md)。
 

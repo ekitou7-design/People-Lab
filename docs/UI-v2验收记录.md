@@ -1,5 +1,8 @@
 # HRFlow UI v2 验收记录
 
+> 历史记录：下文仅对应当时版本与验证，不代表当前交付。最新见[文档导航](README.md)、[评委上手](JUDGES-QUICKSTART.md)及[本轮验证](VALIDATION.md)。
+
+
 记录日期：2026-10-30。当前状态：**浏览器验收 52/52 通过，14 张截图已生成**。原有 21 项检查全部保留，新增 31 项交互、异常恢复和响应式检查。
 
 本次浏览器实际加载的冻结构建为 `/assets/index-Bwig7Fi0.js` 与 `/assets/index-DDIaqKtP.css`，已记录在 `test-results/e2e-report.json`，与最终交付构建一致。

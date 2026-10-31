@@ -1,5 +1,8 @@
 # People-Lab 产品定位与阶段规划
 
+> 当前交付导航（2026-10-31）：[评委上手](JUDGES-QUICKSTART.md) · [使用说明](USER-GUIDE.md) · [队友移交](HANDOFF.md) · [文档索引](README.md)。本任务集成入口为PR #5，含PR #4依赖；以GitHub确认合并状态。下文原阶段/验证记录保留对应时间语境。
+
+
 状态：2026-10-31。产品与仓库名称统一为 People-Lab。阶段一 Order2People、阶段二 SkillBridge、阶段三人才执行闭环（SkillBridge 方案→真实招聘需求草稿/培训任务/内部调配容量占用）均已实现并提交 PR，待团队审核合并；验收证据见 ORDER2PEOPLE-DELIVERY.md 与各阶段 PR 描述。Capability Graph、Talent Simulator、Talent Agent 仍为规划，未实现。
 
 ## 现状与依据

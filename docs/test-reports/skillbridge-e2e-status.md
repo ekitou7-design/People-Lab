@@ -1,5 +1,8 @@
 # SkillBridge E2E 状态（2026-10-31，更新：移动端导航修复后）
 
+> 历史记录：下文仅对应当时版本与验证，不代表当前交付。最新见[文档导航](../README.md)、[评委上手](../JUDGES-QUICKSTART.md)及[本轮验证](../VALIDATION.md)。
+
+
 结论：SkillBridge 浏览器 E2E 全部通过（18 项检查全部通过，含 390px 无横向溢出断言）。
 
 ## 环境

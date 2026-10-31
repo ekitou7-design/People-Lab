@@ -1,5 +1,8 @@
 # Order2People 第一阶段需求
 
+> 当前交付导航（2026-10-31）：[评委上手](JUDGES-QUICKSTART.md) · [使用说明](USER-GUIDE.md) · [队友移交](HANDOFF.md) · [文档索引](README.md)。本任务集成入口为PR #5，含PR #4依赖；以GitHub确认合并状态。下文原阶段/验证记录保留对应时间语境。
+
+
 状态：第一阶段实现依据；已由用户 Goal 授权开发。当前交付证据与限制见 ORDER2PEOPLE-DELIVERY.md。产品边界见 [PRODUCT](PRODUCT.md)，字段与接口见 [API-CONTRACTS](API-CONTRACTS.md)。
 
 ## 目标与流程

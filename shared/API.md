@@ -1,5 +1,8 @@
 # API contract
 
+> 当前交付导航（2026-10-31）：[评委上手](../docs/JUDGES-QUICKSTART.md) · [使用说明](../docs/USER-GUIDE.md) · [队友移交](../docs/HANDOFF.md) · [文档索引](../docs/README.md)。本任务集成入口为PR #5，含PR #4依赖；以GitHub确认合并状态。下文原阶段/验证记录保留对应时间语境。
+
+
 All API JSON is direct (no data envelope). Error shape: {error:{code,message}}. Mutations may return created records; frontend re-fetches GET /api/bootstrap after success. Use header x-demo-actor with a valid Actor.id; default actor-hr. actor-manager is the manager; active employee IDs are selectable demo actors. No real authentication is claimed. Employee users see only their own employees/leaves/training/tickets/messages/events; candidate data is HR-only. See contracts.ts for exact response fields.
 
 - GET /api/health -> {app:'hrflow-demo',status:'ok',...}

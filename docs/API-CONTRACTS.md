@@ -1,5 +1,8 @@
 # 共享数据模型与 API 契约
 
+> 当前交付导航（2026-10-31）：[评委上手](JUDGES-QUICKSTART.md) · [使用说明](USER-GUIDE.md) · [队友移交](HANDOFF.md) · [文档索引](README.md)。本任务集成入口为PR #5，含PR #4依赖；以GitHub确认合并状态。下文原阶段/验证记录保留对应时间语境。
+
+
 状态：实现契约 v1.0，Order2People 第一阶段交付候选。运行时以本文件、shared/order2people.ts 和契约测试为准。P1 extraction 未实现。
 
 ## 当前实现与兼容原则
