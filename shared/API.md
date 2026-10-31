@@ -17,3 +17,7 @@ All API JSON is direct (no data envelope). Error shape: {error:{code,message}}. 
 - POST /api/demo/reset {confirm:'RESET'} (HR)
 
 Core seed: 1 quality inspector position, 3 fictional candidates (use IDs cand-chen, cand-lin, cand-zhou); no active employee before first onboarding. 4 abilities: drawing, inspection, reporting, coordination. Knowledge IDs: policy-leave, guide-onboarding, sop-quality. Required scenario step IDs: isolate, record, report, followup; optional incorrect choices continue, discard. Initial leave balance 3. Date calculations use Asia/Shanghai. Each onboarding uses checklist IDs identity, agreement, orientation. Events oldest->newest or newest->oldest must be consistently newest first. Training scenario choices appear mixed, not correct-first.
+
+## 2026-10-31 修复说明入口
+
+[使用说明](../docs/USER-GUIDE.md) · [队友及 Agent 移交](../docs/HANDOFF.md) · [本轮验证](../docs/VALIDATION.md)。容量以未承诺增量为准，资格覆盖完整需求窗口；部分时段调配无法证明区间时显式阻断。历史发布/阶段记录不是本轮验收。

@@ -231,3 +231,7 @@ HR 对已批准的 SkillBridge 方案执行真实写入，而非仅跳转页面�
 - 内部调配 → 须填写主管确认人与风险说明后，在生产需求模块写入真实容量占用，原计算结果据此过期并需重新计算确认。
 
 字段及端点见 [API 契约](docs/API-CONTRACTS.md)，分工与授权记录见 [分工](docs/WORKSTREAMS.md)。新增浏览器检查：`npm run test:talent-execution:e2e`。
+
+## 2026-10-31 修复说明入口
+
+[使用说明](docs/USER-GUIDE.md) · [队友及 Agent 移交](docs/HANDOFF.md) · [本轮验证](docs/VALIDATION.md)。容量以未承诺增量为准，资格覆盖完整需求窗口；部分时段调配无法证明区间时显式阻断。历史发布/阶段记录不是本轮验收。
