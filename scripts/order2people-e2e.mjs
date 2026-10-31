@@ -15,7 +15,7 @@ const checks = [], errors = [];
 const check = (ok, label) => { assert.ok(ok, label); checks.push(label); console.log('PASS', label); };
 try {
     browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}) });
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
     page.on('pageerror', e => errors.push(e.message));
     const url = `http://127.0.0.1:${server.address().port}`;
     await page.goto(url);
@@ -34,7 +34,7 @@ try {
     await page.getByRole('button', { name: '导出 SkillBridge JSON' }).click();
     const exported = await download;
     check(exported.suggestedFilename().startsWith('skillbridge-'), 'confirmed result downloads SkillBridge JSON');
-    await page.screenshot({ path: join(output, 'desktop.png'), fullPage: true });
+    await page.screenshot({ path: join(output, 'desktop.png'), fullPage: true, animations: 'disabled' });
     await page.reload();
     await page.getByRole('button', { name: '生产需求', exact: true }).click();
     await page.getByText(/confirmed · v2/).waitFor();
@@ -59,7 +59,8 @@ try {
     await page.setViewportSize({ width: 390, height: 844 });
     const bounds = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, width: innerWidth }));
     check(bounds.scroll <= bounds.width + 1, '390px layout has no page overflow');
-    await page.screenshot({ path: join(output, 'mobile.png'), fullPage: true });
+    check(await page.getByTestId('primary-sidebar').evaluate(e=>e.getBoundingClientRect().right<=0), 'mobile sidebar is collapsed and does not cover form');
+    await page.screenshot({ path: join(output, 'mobile.png'), fullPage: true, animations: 'disabled' });
     check(errors.length === 0, 'no browser runtime errors');
     await writeFile(join(output, 'report.json'), JSON.stringify({ status: 'passed', checks, errors }, null, 2));
 }

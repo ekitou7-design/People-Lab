@@ -22,7 +22,7 @@
 | --- | --- |
 | npm test | 30 项通过：14 项旧业务、12 项引擎、2 项 API 综合闭环、2 项输入校验 |
 | npm run build | 通过（最终代码构建） |
-| PLAYWRIGHT_CHANNEL=chrome npm run test:order2people:e2e | 9 项通过，包括人工订单表单与多订单联合容量、下载、刷新、过期、blocked、390px 布局 |
+| PLAYWRIGHT_CHANNEL=chrome npm run test:order2people:e2e | 10 项通过，包括人工订单表单与多订单联合容量、下载、刷新、过期、blocked、390px 布局与导航收起 |
 | PLAYWRIGHT_CHANNEL=chrome npm run test:e2e | 原有 52 项浏览器验收通过 |
 | npm run test:audit | 原助手 12/12 场景，4/4 边界通过 |
 | git diff --check | 通过（最终改动检查） |
