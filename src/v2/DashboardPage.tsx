@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { IconArrowRight, IconArrowUpRight, IconBook2, IconCalendar, IconCheck, IconChevronRight, IconClock, IconLink, IconMessageCircle, IconSchool, IconShieldCheck, IconSparkles, IconUserPlus, IconUsers } from '@tabler/icons-react';
+import { IconArrowRight, IconArrowUpRight, IconBook2, IconBuildingFactory2, IconCalendar, IconCheck, IconChevronRight, IconClock, IconLink, IconMessageCircle, IconSchool, IconShieldCheck, IconSparkles, IconUserPlus, IconUsers } from '@tabler/icons-react';
 import type { PageProps, NavigationTarget } from './types';
 import { Avatar, PageHeader, StatusBadge, type Tone } from './ui';
+import './DashboardProduction.css';
 
 interface WorkItem { id: string; person: string; title: string; detail: string; kind: string; status: string; tone: Tone; color?: string; reason: string; sources: string[]; target: NavigationTarget }
 const stageLabels = { screening: '待筛选', interview: '待面试', decision: '待决策', hired: '已录用' };
@@ -72,7 +73,17 @@ export function DashboardPage({ data, navigate, openKnowledge, focus }: PageProp
   }
   return <div className="v2-dashboard-page">
     <PageHeader title="人才协同工作台" description={isEmployee ? '从当前任务出发，办理日常事务，继续岗位学习与演练。' : '从当前的人与任务出发，推进招聘、员工服务与岗位培养。'} actions={<span className="v2-date"><IconCalendar size={15} />{data.today.replaceAll('-', '.')}</span>} />
-    {!isEmployee && <section className="v2-card"><h2>从订单识别能力缺口</h2><p>{production}</p><p>订单 → 缺口 → 人才路径 → 人工审核 → 执行反馈。无结果时先准备生产输入；批准与执行分别留痕。</p><button className="v2-button primary" onClick={() => navigate({ page: 'order2people' })}>开始生产需求诊断</button></section>}
+    {!isEmployee && <section className="v2-card v2-production-entry" aria-labelledby="v2-production-entry-title">
+      <div className="v2-production-entry-content">
+        <span className="v2-production-entry-icon" aria-hidden="true"><IconBuildingFactory2 size={27} stroke={1.7} /></span>
+        <div className="v2-production-entry-copy">
+          <h2 id="v2-production-entry-title">从订单识别能力缺口</h2>
+          <p className="v2-production-entry-status" aria-live="polite" aria-atomic="true">{production}</p>
+          <p className="v2-production-entry-description">订单 → 缺口 → 人才路径 → 人工审核 → 执行反馈。无结果时先准备生产输入；批准与执行分别留痕。</p>
+        </div>
+      </div>
+      <button className="v2-button primary v2-production-entry-action" onClick={() => navigate({ page: 'order2people' })}>开始生产需求诊断<IconArrowRight size={16} aria-hidden="true" /></button>
+    </section>}
 
     <div className="v2-metric-strip">{metrics.map(metric => <button key={metric.label} className="v2-metric-item" onClick={() => navigate(metric.target)}><div><span>{metric.label}</span><metric.icon size={18} /></div><strong>{metric.value}<small>{metric.suffix}</small></strong></button>)}</div>
     <div className="v2-dashboard-main"><section className="v2-card v2-priority-work"><div className="v2-card-header"><div><h2>现在需要推进</h2><p>选择一个人或事项，继续完成下一步</p></div><StatusBadge tone="blue">{work.length} 项可推进</StatusBadge></div>
