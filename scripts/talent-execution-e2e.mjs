@@ -7,9 +7,8 @@ import { createApp } from '../server/app.mjs';
 
 /**
  * Covers the Phase 3 talent-execution closed loop end to end through the real browser UI:
- * 1. Internal assignment execution requires an explicit manager risk confirmation form
- *    (never implied by HR approval alone) and commits a real Order2People capacity
- *    reservation, which in turn makes the originating calculation stale.
+ * 1. Manager confirmation cannot override insufficient incremental capacity.
+ * 2. Formally verified new supply invalidates old results and closes the gap on recalculation.
  * 2. HR can link an already-existing candidate to a SkillBridge-originated requisition
  *    draft on the Recruitment workbench, and move it to "open" / "closed" — without ever
  *    fabricating a new candidate record.
@@ -31,6 +30,14 @@ try {
   page.on('dialog', (dialog) => dialog.accept());
   const url = `http://127.0.0.1:${server.address().port}`;
   await page.goto(url);
+  await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
+  await page.getByRole('button', { name: '载入内部人才演示样例' }).click();
+  await page.getByRole('button', { name: '载入内部人才演示样例' }).and(page.locator(':enabled')).waitFor();
+  const api = async (path, body, method = 'POST') => {
+    const response = await fetch(`${url}/api${path}`, { method: body ? method : 'GET', headers: { 'Content-Type': 'application/json', 'x-demo-actor': 'actor-hr' }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    const value = await response.json(); assert.ok(response.ok, JSON.stringify(value)); return value;
+  };
+
 
   // --- Build the acceptance scenario via the real Order2People UI: load the demo sample
   // (which seeds the already-active, fully-qualified 'emp-o2p-demo' employee with a
@@ -68,17 +75,9 @@ try {
   await internalProposal.getByLabel('主管确认人').fill('周明远');
   await internalProposal.getByLabel('风险与原岗位影响说明').fill('已确认原岗位任务可在本窗口内让出，不产生新缺口');
   await internalProposal.getByRole('button', { name: '确认执行' }).click();
-  await internalProposal.getByText('已落地执行').waitFor();
-  check(true, 'HR can execute an approved internal_assignment proposal only after supplying manager confirmation and risk note');
-
-  // --- The executed assignment really committed capacity in Order2People: the originating
-  // calculation must now be stale, since the gap it described has genuinely been retired.
-  // The Order2People page only refetches on actor change, not on navigation, so a real user
-  // clicks the existing "刷新已保存数据" (refresh saved data) button to see the new status.
-  await internalProposal.getByRole('button', { name: /前往生产需求查看占用与重新计算/ }).click();
-  await page.getByRole('button', { name: '刷新已保存数据' }).click();
-  await page.getByText(/stale · v2/).waitFor();
-  check(true, 'executing an internal assignment commits a real Order2People reservation and invalidates the calculation it was meant to close');
+  await page.getByText(/资格或增量容量不足/).waitFor();
+  check((await api('/v1/order2people/reservations')).items.length === 0, 'manager confirmation cannot override zero incremental capacity; no reservation is written');
+  check((await api('/v1/order2people/calculations')).items.at(-1).totals.gapSeconds === 7200, 'rejected assignment preserves the real 2h gap');
 
   // --- External requisition: approve, execute, then link an existing candidate from the
   // Recruitment workbench without fabricating a new one.
@@ -110,6 +109,42 @@ try {
   await requisitionRow.getByText('已关闭', { exact: true }).waitFor();
   check(true, 'HR can close a requisition draft once evaluation is finished');
 
+  // A real qualification maintenance operation introduces usable supply. Training alone does not.
+  await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
+  const dev = page.locator('.sb-proposal', { hasText: '内部培养' }).first();
+  await dev.getByRole('button', { name: 'HR 审核' }).click();
+  await dev.getByLabel('审核说明').fill('安排培养，完成后另行核验资格');
+  await dev.getByRole('button', { name: '批准' }).click();
+  await dev.getByText('已批准').first().waitFor();
+  await dev.getByRole('button', { name: '执行方案' }).click();
+  await dev.getByRole('button', { name: '确认执行' }).click();
+  await dev.getByText('已落地执行').waitFor();
+  const bootstrap = await api('/bootstrap');
+  const task = bootstrap.trainingTasks.find(t => t.skillBridgeProposalId);
+  assert.ok(task);
+  await dev.getByRole('button', { name: '查看已创建的培训任务' }).click();
+  await page.getByText(task.title, { exact: true }).and(page.locator(':visible')).first().waitFor();
+  check(!(await page.locator('body').innerText()).includes('先完成录用与实际入职'), 'created development task is immediately visible without reload');
+  const before = (await api('/v1/order2people/qualifications')).items.find(q => q.id === 'skillbridge-demo-qualification');
+  assert.equal(before.status, 'unverified');
+  await api(`/v1/order2people/qualifications/${before.id}`, { expectedRevision: before.revision, patch: { status: 'verified' }, reason: '虚构案例：资格负责人完成正式核验，非培训自动授予', requestKey: 'formal-qualification' }, 'PATCH');
+  await page.getByRole('button', { name: '生产需求', exact: true }).click();
+  await page.getByText(/stale · v2/).waitFor();
+  check(await page.getByRole('button', { name: '导出 SkillBridge JSON' }).isDisabled(), 'returning to production immediately shows stale and disables old export');
+  await page.getByRole('checkbox', { name: /已核对窗口内全部订单/ }).check();
+  await page.getByRole('button', { name: '确认输入并计算' }).click();
+  await page.getByText(/calculated · v1/).waitFor();
+  const latest = (await api('/v1/order2people/calculations')).items.at(-1);
+  assert.deepEqual([latest.totals.demandSeconds, latest.totals.allocatedSeconds, latest.totals.gapSeconds], [36000, 36000, 0]);
+  check(true, 'formally verified new supply recalculates 10h demand / 10h allocated / zero gap');
+  await page.getByRole('button', { name: 'HR 确认结果', exact: true }).and(page.locator(':enabled')).click();
+  await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
+  await page.getByText('暂无可处理的能力缺口', { exact: true }).waitFor();
+  check(true, 'SkillBridge consumes latest confirmed results and no longer offers the closed gap');
+  await page.reload();
+  await page.getByRole('button', { name: '岗位培训', exact: true }).click();
+  await page.getByText(task.title, { exact: true }).and(page.locator(':visible')).first().waitFor();
+  check((await api('/bootstrap')).trainingTasks.filter(t => t.skillBridgeProposalId === task.skillBridgeProposalId).length === 1, 'refresh preserves one traceable development task');
   await page.screenshot({ path: join(output, 'desktop.png'), fullPage: true, animations: 'disabled' });
   check(errors.length === 0, 'no browser runtime errors');
   await writeFile(join(output, 'report.json'), JSON.stringify({ status: 'passed', checks, errors }, null, 2));

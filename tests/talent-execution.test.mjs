@@ -152,7 +152,7 @@ test('executing an external_requisition proposal creates a requisition draft, ne
   assert.deepEqual(validLink.body.linkedCandidateIds, ['cand-lin']);
 });
 
-test('executing an internal_assignment proposal requires explicit manager risk confirmation and commits real capacity', async (t) => {
+test('internal assignment requires manager confirmation and rejects already allocated capacity', async (t) => {
   const request = await harness(t, 'talent-exec-assign-');
   const sb = '/v1/skillbridge';
   const o2p = '/v1/order2people';
@@ -171,21 +171,14 @@ test('executing an internal_assignment proposal requires explicit manager risk c
     expectedRevision: review.body.revision, requestKey: 'exec-1',
     managerConfirmedBy: 'actor-manager', riskAcknowledgement: '已确认原岗位任务可在本窗口内让出，不产生新缺口',
   });
-  assert.equal(executed.status, 200, JSON.stringify(executed));
-  assert.equal(executed.body.execution.refType, 'capacity_reservation');
+  assert.equal(executed.status, 409);
+  assert.equal(executed.body.error.code, 'ASSIGNMENT_UNAVAILABLE');
+  const reservations = await request(`${o2p}/reservations`);
+  assert.equal(reservations.body.items.length, 0, 'failed execution must roll back all writes');
+  const current = await request(`${o2p}/calculations/${calc.id}`);
+  assert.equal(current.body.status, 'confirmed', 'a rejected assignment does not change inputs');
+  assert.deepEqual(current.body.totals, calc.totals);
 
-  // A real CapacityReservation now exists in Order2People's own collection.
-  const reservations = await request(`${o2p}/reservations`, undefined, 'GET');
-  const reservation = reservations.body.items.find((r) => r.id === executed.body.execution.refId);
-  assert.ok(reservation);
-  assert.equal(reservation.employeeId, employeeId);
-  assert.equal(reservation.source.sourceType, 'skillbridge_assignment');
-  assert.equal(reservation.source.confirmedBy, 'actor-manager');
-
-  // Committing real capacity must invalidate the calculation that produced this gap —
-  // an executed assignment is supposed to retire the gap, not silently coexist with it.
-  const staleCalc = await request(`${o2p}/calculations/${calc.id}`, undefined, 'GET');
-  assert.equal(staleCalc.body.status, 'stale', 'executing an internal assignment must invalidate the upstream calculation it was meant to close');
 });
 
 test('a stale upstream demand blocks proposal execution even if the proposal was already hr_approved', async (t) => {
@@ -229,4 +222,31 @@ test('baseline assignment is rejected without reservations; recalculation preser
   const next = await request('/v1/order2people/calculations', { scope: calc.scope, dailyDemands: calc.lines.map(l => ({ id: l.demandId, orderId: l.orderRef.id, operationId: l.operationId, date: l.date, window: l.window, quantity: l.quantity, batchCount: l.batchCount })), expectedInputRevisions: revs, requestKey: 'ux-recalc' });
   assert.equal(next.status, 201);
   assert.deepEqual([next.body.totals.demandSeconds, next.body.totals.allocatedSeconds, next.body.totals.gapSeconds], [36000, 28800, 7200]);
+});
+
+test('formal qualification introduces real supply; stale history rolls back rejected execution and new confirmed export closes gap', async t => {
+  const request = await harness(t, 'talent-real-supply-');
+  const { case: c, calc } = await openAcceptanceCase(request);
+  const q = (await request('/v1/order2people/qualifications')).body.items.find(q => q.id === 'skillbridge-demo-qualification');
+  assert.equal(q.status, 'unverified');
+  const p = c.proposals.find(p => p.path === 'external_requisition');
+  const approved = await request(`/v1/skillbridge/proposals/${p.id}/review`, { decision: 'hr_approved', note: '供给变化前审核', expectedRevision: p.revision, requestKey: 'supply-review' }, 'PATCH');
+  const change = await request(`/v1/order2people/qualifications/${q.id}`, { expectedRevision: q.revision, patch: { status: 'verified' }, reason: '资格负责人正式核验（虚构测试）', requestKey: 'supply-verify' }, 'PATCH');
+  assert.equal(change.status, 200);
+  assert.equal((await request(`/v1/order2people/calculations/${calc.id}`)).body.status, 'stale');
+  const rejected = await request(`/v1/skillbridge/proposals/${p.id}/execute`, { expectedRevision: approved.body.revision, requestKey: 'stale-execution' });
+  assert.equal(rejected.status, 409);
+  assert.equal(rejected.body.error.code, 'DEMAND_STALE');
+  assert.equal((await request('/v1/skillbridge/requisitions')).body.items.length, 0);
+  const savedCase = (await request('/v1/skillbridge/cases')).body.items.find(v => v.id === c.id);
+  assert.equal(savedCase.proposals.find(v => v.id === p.id).execution.status, 'not_executed', '409 rolls back attempted blocked_stale write');
+  const revs = Object.fromEntries(await Promise.all(['orders', 'routings', 'qualifications', 'calendars', 'reservations'].map(async k => [k, (await request(`/v1/order2people/${k}`)).body.items.map(v => ({ id: v.id, revision: v.revision }))])));
+  const next = await request('/v1/order2people/calculations', { scope: calc.scope, dailyDemands: calc.lines.map(l => ({ id: l.demandId, orderId: l.orderRef.id, operationId: l.operationId, date: l.date, window: l.window, quantity: l.quantity, batchCount: l.batchCount })), expectedInputRevisions: revs, requestKey: 'supply-recalc' });
+  assert.equal(next.status, 201, JSON.stringify(next));
+  assert.deepEqual([next.body.totals.demandSeconds, next.body.totals.allocatedSeconds, next.body.totals.gapSeconds], [36000, 36000, 0]);
+  assert.ok(next.body.allocations.some(a => a.employeeId === q.employeeId && a.allocatedSeconds > 0));
+  const confirmed = await request(`/v1/order2people/calculations/${next.body.id}/confirm`, { expectedRevision: next.body.revision, expectedInputHash: next.body.inputHash, requestKey: 'supply-confirm' });
+  assert.equal(confirmed.status, 200);
+  assert.deepEqual((await request(`/v1/order2people/calculations/${next.body.id}/skillbridge-demands`)).body.demands, []);
+  assert.deepEqual((await request(`/v1/order2people/calculations/${calc.id}`)).body.totals, calc.totals, 'historical numbers are immutable');
 });

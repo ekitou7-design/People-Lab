@@ -44,7 +44,7 @@ export function RecruitmentPage({ data, busy, mutate, navigate, openKnowledge, f
   }
   // SkillBridge-originated requisition drafts are fetched independently, same pattern as
   // SkillBridgePage fetching Order2People data: additive, never folded into bootstrap.
-  useEffect(() => { if (data.actor.role === 'hr') void refreshRequisitions(); }, [data.actor.id]);
+  useEffect(() => { if (data.actor.role === 'hr') void refreshRequisitions(); }, [data.actor.id, data, focus]);
 
   async function updateRequisition(requisition: RecruitmentRequisition, patch: { status?: RecruitmentRequisition['status']; linkedCandidateIds?: string[] }) {
     setRequisitionError('');

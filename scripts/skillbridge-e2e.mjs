@@ -80,7 +80,7 @@ try {
   await devProposal.getByRole('button', { name: 'HR 审核' }).click();
   await devProposal.getByLabel('审核说明').fill('同意先安排资格核验，暂不正式调配');
   await devProposal.getByRole('button', { name: '批准' }).click();
-  await page.getByText('已批准').first().waitFor();
+  await page.getByText('已批准', { exact: true }).and(page.locator(':visible')).first().waitFor();
   check(true, 'HR can approve a development-plan proposal with a review note');
 
   // --- Executing the approved development-plan proposal creates a real TrainingTask and
@@ -114,11 +114,11 @@ try {
   // --- Review decision survives a full browser refresh (persisted, not client-only state).
   await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
   await page.locator('.sb-demand-row', { hasText: '缺口 2.0 h' }).getByRole('button', { name: '查看分析' }).click();
-  await page.getByText('已批准').first().waitFor();
+  await page.getByText('已批准', { exact: true }).and(page.locator(':visible')).first().waitFor();
   await page.reload();
   await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
   await page.locator('.sb-demand-row', { hasText: '缺口 2.0 h' }).getByRole('button', { name: '查看分析' }).click();
-  await page.getByText('已批准').first().waitFor();
+  await page.getByText('已批准', { exact: true }).and(page.locator(':visible')).first().waitFor();
   check(true, 'HR review decision persists across a browser refresh');
   await page.screenshot({ path: join(output, 'desktop.png'), fullPage: true, animations: 'disabled' });
 
