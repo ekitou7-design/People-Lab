@@ -17,3 +17,6 @@
 集成入口：[PR #5](https://github.com/ekitou7-design/People-Lab/pull/5)，包含PR #4依赖；本任务已获得明确合并授权，以GitHub状态核实实际合并结果。主线是订单→缺口→人才路径→人工审核→执行反馈。部分时段调配仍明确阻断，培训不等于岗位资格。
 
 历史资料：[HR-V1](releases/HR-V1.md)、[HR-V2](releases/HR-V2.md)、[原验收](验收记录.md)、[UI-v2验收](UI-v2验收记录.md)、[设计](design/README.md)、[SkillBridge历史测试](test-reports/skillbridge-e2e-status.md)。
+
+
+文案维护遵循 [企业 HR 文案规范](UX-WRITING.md)；阶段 B 采用清单和实际验证见 PRODUCT-COPY-DELIVERY.md。

@@ -118,7 +118,7 @@ try {
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.goto(origin, { waitUntil: 'networkidle' });
   loadedAssets = await page.evaluate(() => [...document.querySelectorAll('script[src], link[rel="stylesheet"]')].map(element => element.getAttribute(element.tagName === 'SCRIPT' ? 'src' : 'href')).filter(Boolean));
-  await goPage('驾驶舱');
+  await goPage('管理驾驶舱');
   await readableText('visible desktop dashboard text and controls use at least 12px fonts');
   await screenshot('06-initial-dashboard.png');
   await page.setViewportSize({ width: 1024, height: 768 });
@@ -132,7 +132,7 @@ try {
   const assistantAbility = initial.position.abilities.find(item => item.id === assistantEvidence.abilityId);
   check(await page.getByRole('button', { name: `查看${candidate.name}档案`, exact: true }).getAttribute('aria-pressed') === 'true'
     && await page.getByRole('button', { name: `查看原文证据：${assistantAbility.name}`, exact: true }).getAttribute('aria-pressed') === 'true', 'dashboard assistant opens the actual candidate and evidence task');
-  await goPage('招聘工作台');
+  await goPage('招聘管理');
   await page.getByRole('button', { name: `查看${candidate.name}档案`, exact: true }).click();
 
   const citedEvidence = candidate.evidence.find(item => item.quote && item.status === 'supported');
@@ -179,7 +179,7 @@ try {
   check(employee?.status === 'pending', 'HR hiring creates a pending employee without activating the account');
   check(employee.confirmedNeeds.length === 0, 'unverified resume evidence is not silently turned into a development deficit');
 
-  await goPage('驾驶舱');
+  await goPage('管理驾驶舱');
   const remainingCandidate = snapshot.candidates.find(item => item.stage !== 'hired');
   await page.getByRole('button', { name: new RegExp(`^选择事项：${remainingCandidate.name}·`) }).click();
   const recruitmentContextSelected = (await contextAssistant.innerText()).includes(remainingCandidate.name);
@@ -203,7 +203,7 @@ try {
   employee = snapshot.employees.find(item => item.id === employee.id);
   const employeeActor = snapshot.actors.find(item => item.employeeId === employee.id);
   check(Boolean(employeeActor) && snapshot.trainingTasks.some(item => item.employeeId === employee.id), 'onboarding activates the employee actor and creates training tasks');
-  await goPage('驾驶舱');
+  await goPage('管理驾驶舱');
   const workFilters = page.getByRole('group', { name: '筛选待办类型', exact: true });
   check(await workFilters.getByRole('button', { name: '全部', exact: true }).getAttribute('aria-pressed') === 'true'
     && await page.getByRole('button', { name: new RegExp(`^选择事项：${employee.name}·`) }).count() > 0
@@ -295,7 +295,7 @@ try {
   await preview.getByRole('button', { name: '提交申请', exact: true }).click();
   snapshot = await poll(employeeState, value => value.leaves.some(item => item.status === 'pending'), 'submit leave');
   const leave = snapshot.leaves.find(item => item.status === 'pending');
-  const submittedResult = leaveCard.getByRole('region', { name: '申请办理结果', exact: true });
+  const submittedResult = leaveCard.getByRole('region', { name: '申请进度', exact: true });
   await submittedResult.waitFor({ state: 'visible' });
   check(await submittedResult.getAttribute('data-leave-id') === leave.id && (await submittedResult.innerText()).includes(leave.id), 'the same task card displays the actual submitted request ID and result');
   const savedWriteWarning = page.getByRole('alert').filter({ hasText: '操作已保存' });
@@ -324,7 +324,7 @@ try {
   check(snapshot.employees.find(item => item.id === employee.id).leaveBalance === 2.5, 'manager approval deducts the balance exactly once');
 
   await page.getByRole('combobox', { name: '切换演示身份', exact: true }).selectOption(employeeActor.id);
-  await goPage('岗位培训');
+  await goPage('培训管理');
   await page.getByRole('button', { name: '开始学习', exact: true }).first().click();
   snapshot = await employeeState();
   const required = snapshot.trainingScenario.steps.filter(item => item.required);
@@ -354,7 +354,7 @@ try {
   await page.setViewportSize({ width: 1440, height: 1080 });
 
   await page.getByRole('combobox', { name: '切换演示身份', exact: true }).selectOption('actor-hr');
-  await goPage('驾驶舱');
+  await goPage('管理驾驶舱');
   snapshot = await state();
   check(snapshot.metrics.hiredCount === 1 && snapshot.metrics.activeEmployees === 1 && snapshot.metrics.approvedLeaves === 1, 'dashboard metrics reflect hiring, onboarding and leave approval');
   check(snapshot.metrics.completedTraining >= 1 && snapshot.metrics.rootTrainingCount >= snapshot.metrics.completedTraining, 'dashboard counts completed original training without inflating totals with retry tasks');

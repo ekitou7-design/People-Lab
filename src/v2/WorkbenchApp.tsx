@@ -60,7 +60,7 @@ export default function WorkbenchApp() {
     busyRef.current = true; setBusy(true); setError('');
     try {
       const result = await request<T>(path, method, body);
-      try { await refresh(); setToast('操作已保存，业务记录已同步'); }
+      try { await refresh(); setToast('已保存'); }
       catch { setError('操作已保存，但最新数据暂未同步。请重新连接后查看，请勿重复办理。'); }
       return result;
     } finally { busyRef.current = false; setBusy(false); }
@@ -85,14 +85,14 @@ export default function WorkbenchApp() {
     setContexts({ dashboard: { page: 'dashboard' } });
     setResetOpen(false); setResetError(''); setError(''); setToast('');
   }
-  if (!data) return <div className="v2-boot"><span><IconBuildingFactory2 size={30} /></span><h1>People-Lab</h1><p>{error || '正在连接人才协同工作台…'}</p>{error && <button className="v2-button primary" onClick={() => { setError(''); refresh().catch(reason => setError(reason.message)); }}>重新连接</button>}</div>;
+  if (!data) return <div className="v2-boot"><span><IconBuildingFactory2 size={30} /></span><h1>People-Lab</h1><p>{error || '正在加载工作台…'}</p>{error && <button className="v2-button primary" onClick={() => { setError(''); refresh().catch(reason => setError(reason.message)); }}>重新连接</button>}</div>;
 
   const pageProps: PageProps = { data, busy, mutate, navigate, openKnowledge, refreshData: refresh, focus: target };
   const pageKey = `${data.actor.id}-${revision}`;
   const steps: { title: string; text: string; target: NavigationTarget; visible: boolean }[] = [
-    { title: '订单→缺口→人才路径→人工审核→执行反馈', text: '先维护生产输入并确认缺口，再分析人才路径；HR 批准后才可创建任务或草稿，调配须额外核验容量。规则演示，不是自动人事决策。', target: { page: 'order2people' }, visible: data.actor.role !== 'employee' },
+    { title: '计算用工缺口并审核方案', text: '先维护生产输入并确认缺口，再分析人才路径；HR 批准后才可创建任务或草稿，调配须额外核验容量。规则演示，不是自动人事决策。', target: { page: 'order2people' }, visible: data.actor.role !== 'employee' },
     { title: '审阅候选人与能力证据', text: '同时查看匹配判断、简历原句和面试问题，由 HR 确认录用。', target: { page: 'recruitment', candidateId: 'cand-chen' }, visible: data.actor.role === 'hr' },
-    { title: '完成核验并确认入职', text: '核验清单完成后激活员工档案，自动分配岗位培养任务。', target: { page: 'onboarding' }, visible: data.actor.role !== 'employee' },
+    { title: '完成核验并确认入职', text: '核验清单完成后激活员工档案，自动分配培训任务。', target: { page: 'onboarding' }, visible: data.actor.role !== 'employee' },
     { title: '咨询制度、填写申请与审批', text: '切换员工身份，在办理卡中填写、预览并提交；主管身份处理审批。', target: { page: 'service' }, visible: true },
     { title: '学习 SOP，完成演练与复练', text: '切换员工身份，根据四项规则补齐遗漏；首次与关联复练记录分别保留。', target: { page: 'training' }, visible: true },
     { title: '查看协同进度与操作记录', text: '指标与人员明细由同一份业务记录更新。', target: { page: 'dashboard' }, visible: true },
@@ -110,7 +110,7 @@ export default function WorkbenchApp() {
       {page === 'knowledge' && <KnowledgePage {...pageProps} focus={focus} onBack={returnTarget ? () => navigate(returnTarget) : undefined} />}
     </div>)}
     {toast && <div className="v2-toast" role="status"><IconShieldCheck size={18} />{toast}</div>}
-    {guideOpen && <Dialog title="用一位新同事，走通人才协同" label="演示路线" description="演示身份切换仅用于体验流程。业务操作由后端校验并保存。" onClose={() => setGuideOpen(false)}><div className="v2-guide-list">{steps.filter(step => step.visible).map((step, index) => <button key={step.title} onClick={() => { setGuideOpen(false); navigate(step.target); }}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{step.title}</strong><p>{step.text}</p></div><IconArrowRight size={18} /></button>)}</div><p className="v2-muted"><IconShieldCheck size={16} />虚构演示企业 · 预置证据 · 程序规则评分 · 人工决定</p></Dialog>}
+    {guideOpen && <Dialog title="操作指南" label="演示路线" description="演示身份切换仅用于体验流程。业务操作由后端校验并保存。" onClose={() => setGuideOpen(false)}><div className="v2-guide-list">{steps.filter(step => step.visible).map((step, index) => <button key={step.title} onClick={() => { setGuideOpen(false); navigate(step.target); }}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{step.title}</strong><p>{step.text}</p></div><IconArrowRight size={18} /></button>)}</div><p className="v2-muted"><IconShieldCheck size={16} />虚构演示企业 · 预置证据 · 程序规则评分 · 人工决定</p></Dialog>}
     {resetOpen && data.actor.role === 'hr' && <Dialog title="重置演示数据" label="重置演示数据" description="清空本地业务记录，回到初始招聘状态" error={resetError} onClose={() => { if (!busy) setResetOpen(false); }}><div className="v2-reset-warning"><IconRefresh size={28} /><p>录用、入职、请假、咨询、培训和操作记录将被清空。三份虚构简历与演示知识资料会恢复为初始状态。</p></div><div className="v2-dialog-actions"><button className="v2-button secondary" disabled={busy} onClick={() => setResetOpen(false)}>保留当前数据</button><button className="v2-button danger" disabled={busy} onClick={async () => { try { await mutate('/api/demo/reset', { confirm: 'RESET' }); setResetOpen(false); setRevision(value => value + 1); navigate({ page: 'dashboard' }); } catch (reason) { setResetError(reason instanceof Error ? reason.message : '重置未完成'); } }}>确认重置</button></div></Dialog>}
   </WorkspaceShell>;
 }
