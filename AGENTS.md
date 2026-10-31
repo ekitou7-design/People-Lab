@@ -38,3 +38,6 @@ People-Lab：阶段一 Order2People、阶段二 SkillBridge、阶段三人才执
 - USER-GUIDE保留故障恢复、版本更新与数据目录说明；HANDOFF保留文件职责、幂等、历史与容量边界；VALIDATION记录每次真实运行，不把仅文档修改写成重新验收。
 - 历史release、设计和测试文档保留原结果与日期，添加当前文档导航，不改写为本轮证据。PR合并状态以GitHub实时状态为准。
 - 不替评委假造操作耗时、点击次数、AI指标或“自动取得岗位资格”。不支持的部分区间调配明确说明阻断原因。
+
+
+文案维护遵循 [企业 HR 文案规范](docs/UX-WRITING.md)；阶段 B 采用清单和实际验证见 docs/PRODUCT-COPY-DELIVERY.md。

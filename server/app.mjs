@@ -181,7 +181,7 @@ function buildReply(state, employee, message) {
   if (leaveNegated && trainingIntent) return trainingReply(state, employee);
   const unsupportedLeave = message.match(/陪产假|产检假|病假|婚假|产假|育儿假|丧假|事假|调休|工伤假|护理假|探亲假|哺乳假/);
   if (unsupportedLeave) {
-    return handoffReply(state, employee, message, `本 Demo 仅支持年假制度查询与办理，未配置${unsupportedLeave[0]}的制度或申请流程，不能套用年假表单。`);
+    return handoffReply(state, employee, message, `本演示仅支持年假制度查询与办理，未配置${unsupportedLeave[0]}的制度或申请流程，不能套用年假表单。`);
   }
   if (leaveNegated && !onboardingIntent && !balanceIntent && !statusIntent) {
     return handoffReply(state, employee, message, '已理解你暂不办理请假。请说明需要查询的其他事项，或等待 HR 进一步确认。');
@@ -374,7 +374,7 @@ export function createApp({ dataDir = join(projectRoot, 'data') } = {}) {
     const date = dateOnly(body.date);
     const period = body.period;
     requireThat(validPeriods.includes(period), 400, 'INVALID_PERIOD', '请选择上午、下午或全天。');
-    const reason = textField(body.reason, '请假原因', { max: 500 });
+    const reason = textField(body.reason, '请假事由', { max: 500 });
     const requestKey = textField(body.requestKey, '操作编号', { max: 160 });
     const days = period === 'full' ? 1 : 0.5;
     const result = store.transaction((state) => {
@@ -437,7 +437,7 @@ export function createApp({ dataDir = join(projectRoot, 'data') } = {}) {
     const requestKey = textField(body.requestKey, '操作编号', { max: 160 });
     const result = store.transaction((state) => {
       const { task, employee } = ownTraining(state, req.actor, req.params.id);
-      requireThat(task.status !== 'completed', 409, 'TRAINING_COMPLETED', '该任务已通过，请查看已保存的培训结果。');
+      requireThat(task.status !== 'completed', 409, 'TRAINING_COMPLETED', '该培训任务已完成，请查看已保存的演练结果。');
       requireThat(task.parentTaskId || task.status !== 'needs_retry', 409, 'RETRY_REQUIRED', '请打开已生成的复练任务继续练习。');
       requireThat(task.status === 'learning', 409, 'TRAINING_NOT_STARTED', '请先打开任务开始学习，再提交演练。复练失败后也请重新开始复练。');
       const required = trainingScenario.steps.filter((step) => step.required);

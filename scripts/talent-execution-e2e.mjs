@@ -30,7 +30,7 @@ try {
   page.on('dialog', (dialog) => dialog.accept());
   const url = `http://127.0.0.1:${server.address().port}`;
   await page.goto(url);
-  await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
+  await page.getByRole('button', { name: '人才方案', exact: true }).click();
   await page.getByRole('button', { name: '载入内部人才演示样例' }).click();
   await page.getByRole('button', { name: '载入内部人才演示样例' }).and(page.locator(':enabled')).waitFor();
   const api = async (path, body, method = 'POST') => {
@@ -45,20 +45,20 @@ try {
   // result. Using the existing demo employee (same as skillbridge-e2e.mjs) avoids hiring a
   // brand-new employee with no Order2People calendar, which would correctly block the
   // calculation per the "no active employee's capacity may be assumed" business rule.
-  await page.getByRole('button', { name: '生产需求', exact: true }).click();
-  await page.getByRole('button', { name: '载入 / 重置演示样例' }).click();
+  await page.getByRole('button', { name: '生产用工', exact: true }).click();
+  await page.getByRole('button', { name: '载入或恢复生产样例' }).click();
   await page.getByLabel('每日数量 1', { exact: true }).waitFor();
   await page.waitForFunction(() => document.querySelector('textarea[aria-label="每日工序需求"]')?.value.includes('o2p-demo-demand'));
   await page.getByRole('checkbox', { name: /已核对窗口内全部订单/ }).check();
   await page.getByRole('button', { name: '确认输入并计算' }).click();
-  await page.getByText(/calculated · v1/).waitFor();
+  await page.getByText(/待确认 · v1/).waitFor();
   await page.getByRole('button', { name: 'HR 确认结果', exact: true }).click();
-  await page.getByText(/confirmed · v2/).waitFor();
+  await page.getByText(/已确认 · v2/).waitFor();
 
   // --- Open the SkillBridge case for this demand.
-  await page.getByRole('button', { name: '前往 SkillBridge 分析' }).click();
-  await page.getByRole('button', { name: '发起 SkillBridge 分析' }).and(page.locator(':enabled')).click();
-  await page.getByRole('heading', { name: /内部人才与技能差距/ }).waitFor();
+  await page.getByRole('button', { name: '前往人才方案' }).click();
+  await page.getByRole('button', { name: '分析人才方案' }).and(page.locator(':enabled')).click();
+  await page.getByRole('heading', { name: /内部人才与资格差距/ }).waitFor();
 
   // --- Approve and execute the internal_assignment proposal. The form must require both
   // a manager name and a risk acknowledgement before "确认执行" does anything real.
@@ -67,21 +67,21 @@ try {
   await internalProposal.getByLabel('审核说明').fill('同意调配，已了解容量情况');
   await internalProposal.getByRole('button', { name: '批准' }).click();
   await internalProposal.getByText('已批准').first().waitFor();
-  await internalProposal.getByRole('button', { name: '执行方案' }).click();
+  await internalProposal.getByRole('button', { name: /创建培训任务|创建招聘需求草稿|创建调配占用/ }).click();
   check(await internalProposal.getByLabel('主管确认人').isVisible(), 'internal_assignment execution form requires an explicit manager confirmation field');
   check(await internalProposal.getByLabel('风险与原岗位影响说明').isVisible(), 'internal_assignment execution form requires an explicit risk/impact note field');
-  await internalProposal.getByRole('button', { name: '确认执行' }).click();
+  await internalProposal.getByRole('button', { name: '确认创建' }).click();
   check(await internalProposal.getByText(/主管确认人与风险说明/).isVisible(), 'submitting without the manager confirmation and risk note is rejected rather than silently executed');
   await internalProposal.getByLabel('主管确认人').fill('周明远');
   await internalProposal.getByLabel('风险与原岗位影响说明').fill('已确认原岗位任务可在本窗口内让出，不产生新缺口');
-  await internalProposal.getByRole('button', { name: '确认执行' }).click();
-  await page.getByText(/资格或增量容量不足/).waitFor();
+  await internalProposal.getByRole('button', { name: '确认创建' }).click();
+  await page.getByText(/资格或可新增分配工时不足/).waitFor();
   check((await api('/v1/order2people/reservations')).items.length === 0, 'manager confirmation cannot override zero incremental capacity; no reservation is written');
   check((await api('/v1/order2people/calculations')).items.at(-1).totals.gapSeconds === 7200, 'rejected assignment preserves the real 2h gap');
 
   // --- External requisition: approve, execute, then link an existing candidate from the
   // Recruitment workbench without fabricating a new one.
-  await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
+  await page.getByRole('button', { name: '人才方案', exact: true }).click();
   await page.locator('.sb-case-row').first().getByRole('button', { name: '打开记录' }).click();
   const extProposal = page.locator('.sb-proposal', { hasText: '外部招聘' }).first();
   if (await extProposal.getByRole('button', { name: 'HR 审核' }).count()) {
@@ -89,12 +89,12 @@ try {
     await extProposal.getByLabel('审核说明').fill('同意生成招聘需求草稿');
     await extProposal.getByRole('button', { name: '批准' }).click();
     await extProposal.getByText('已批准').first().waitFor();
-    await extProposal.getByRole('button', { name: '执行方案' }).click();
-    await extProposal.getByRole('button', { name: '确认执行' }).click();
-    await extProposal.getByText('已落地执行').waitFor();
+    await extProposal.getByRole('button', { name: /创建培训任务|创建招聘需求草稿|创建调配占用/ }).click();
+    await extProposal.getByRole('button', { name: '确认创建' }).click();
+    await extProposal.getByText('已执行').waitFor();
   }
-  await extProposal.getByRole('button', { name: /前往招聘工作台/ }).click();
-  await page.getByText('来自 SkillBridge 的招聘需求草稿').waitFor();
+  await extProposal.getByRole('button', { name: /前往招聘管理/ }).click();
+  await page.getByText('招聘需求草稿 · 来自人才方案').waitFor();
   const requisitionRow = page.locator('.v2-requisition-row').first();
   await requisitionRow.getByLabel('选择要关联的候选人').selectOption({ label: '林知遥' }).catch(async () => {
     // Fall back to whatever candidate option actually exists in this demo roster.
@@ -110,39 +110,44 @@ try {
   check(true, 'HR can close a requisition draft once evaluation is finished');
 
   // A real qualification maintenance operation introduces usable supply. Training alone does not.
-  await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
+  await page.getByRole('button', { name: '人才方案', exact: true }).click();
   const dev = page.locator('.sb-proposal', { hasText: '内部培养' }).first();
   await dev.getByRole('button', { name: 'HR 审核' }).click();
   await dev.getByLabel('审核说明').fill('安排培养，完成后另行核验资格');
   await dev.getByRole('button', { name: '批准' }).click();
   await dev.getByText('已批准').first().waitFor();
-  await dev.getByRole('button', { name: '执行方案' }).click();
-  await dev.getByRole('button', { name: '确认执行' }).click();
-  await dev.getByText('已落地执行').waitFor();
+  await dev.getByRole('button', { name: /创建培训任务|创建招聘需求草稿|创建调配占用/ }).click();
+  await dev.getByRole('button', { name: '确认创建' }).click();
+  await dev.getByText('已执行').waitFor();
   const bootstrap = await api('/bootstrap');
   const task = bootstrap.trainingTasks.find(t => t.skillBridgeProposalId);
   assert.ok(task);
-  await dev.getByRole('button', { name: '查看已创建的培训任务' }).click();
+  await dev.getByRole('button', { name: '查看培训任务' }).click();
   await page.getByText(task.title, { exact: true }).and(page.locator(':visible')).first().waitFor();
   check(!(await page.locator('body').innerText()).includes('先完成录用与实际入职'), 'created development task is immediately visible without reload');
   const before = (await api('/v1/order2people/qualifications')).items.find(q => q.id === 'skillbridge-demo-qualification');
   assert.equal(before.status, 'unverified');
   await api(`/v1/order2people/qualifications/${before.id}`, { expectedRevision: before.revision, patch: { status: 'verified' }, reason: '虚构案例：资格负责人完成正式核验，非培训自动授予', requestKey: 'formal-qualification' }, 'PATCH');
-  await page.getByRole('button', { name: '生产需求', exact: true }).click();
-  await page.getByText(/stale · v2/).waitFor();
-  check(await page.getByRole('button', { name: '导出 SkillBridge JSON' }).isDisabled(), 'returning to production immediately shows stale and disables old export');
+  await page.getByRole('button', { name: '生产用工', exact: true }).click();
+  await page.getByText(/已过期 · v2/).waitFor();
+  check(await page.getByRole('button', { name: '导出缺口数据（JSON）' }).isDisabled(), 'returning to production immediately shows stale and disables old export');
   await page.getByRole('checkbox', { name: /已核对窗口内全部订单/ }).check();
   await page.getByRole('button', { name: '确认输入并计算' }).click();
-  await page.getByText(/calculated · v1/).waitFor();
+  await page.getByText(/待确认 · v1/).waitFor();
   const latest = (await api('/v1/order2people/calculations')).items.at(-1);
   assert.deepEqual([latest.totals.demandSeconds, latest.totals.allocatedSeconds, latest.totals.gapSeconds], [36000, 36000, 0]);
   check(true, 'formally verified new supply recalculates 10h demand / 10h allocated / zero gap');
   await page.getByRole('button', { name: 'HR 确认结果', exact: true }).and(page.locator(':enabled')).click();
-  await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
-  await page.getByText('暂无可处理的能力缺口', { exact: true }).waitFor();
+  await page.getByRole('button', { name: '人才方案', exact: true }).click();
+  await page.getByText('当前无待处理缺口', { exact: true }).waitFor();
+  check(await page.getByText('已确认结果中没有待处理的用工缺口，可在生产用工中查看计算记录。', { exact: true }).isVisible(), 'zero-gap empty state does not ask for another calculation');
+  await page.screenshot({ path: join(output, 'zero-gap-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: join(output, 'zero-gap-mobile.png'), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   check(true, 'SkillBridge consumes latest confirmed results and no longer offers the closed gap');
   await page.reload();
-  await page.getByRole('button', { name: '岗位培训', exact: true }).click();
+  await page.getByRole('button', { name: '培训管理', exact: true }).click();
   await page.getByText(task.title, { exact: true }).and(page.locator(':visible')).first().waitFor();
   check((await api('/bootstrap')).trainingTasks.filter(t => t.skillBridgeProposalId === task.skillBridgeProposalId).length === 1, 'refresh preserves one traceable development task');
   await page.screenshot({ path: join(output, 'desktop.png'), fullPage: true, animations: 'disabled' });
