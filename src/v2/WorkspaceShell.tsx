@@ -34,7 +34,7 @@ export function WorkspaceShell({ data, page, busy, onNavigate, onActorChange, on
     <a className="v2-skip-link" href="#v2-main">跳到主要内容</a>
     {menuOpen && <button className="v2-nav-backdrop" aria-label="关闭导航" onClick={() => setMenuOpen(false)} />}
     <aside className={`v2-sidebar ${menuOpen ? 'open' : ''}`} data-testid="primary-sidebar">
-      <a href="#" className="v2-brand" onClick={event => { event.preventDefault(); navigate({ page: 'dashboard' }); }}><span><IconBuildingFactory2 size={23} stroke={1.6} /></span><div>HRFlow <b>AI</b><small>企业人才协同平台</small></div></a>
+      <a href="#" className="v2-brand" onClick={event => { event.preventDefault(); navigate({ page: 'dashboard' }); }}><span><IconBuildingFactory2 size={23} stroke={1.6} /></span><div>People-Lab<small>企业人才协同平台</small></div></a>
       <div className="v2-space-label"><span>智</span><div>智造人才工作空间<small>招聘 · 服务 · 岗位培养</small></div></div>
       <div className="v2-nav-label">工作空间</div>
       <nav aria-label="主导航">{navItems.map(item => <button key={item.page} aria-label={item.label} aria-current={page === item.page ? 'page' : undefined} className={`v2-nav-item ${page === item.page ? 'active' : ''}`} onClick={() => navigate({ page: item.page })}><item.icon size={19} stroke={1.7} /><span>{item.title}</span>{item.page === 'recruitment' && <small>{data.candidates.filter(candidate => candidate.stage !== 'hired').length}</small>}{item.page === 'service' && pending > 0 && <small>{pending}</small>}</button>)}</nav>

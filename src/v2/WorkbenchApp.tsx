@@ -84,7 +84,7 @@ export default function WorkbenchApp() {
     setContexts({ dashboard: { page: 'dashboard' } });
     setResetOpen(false); setResetError(''); setError(''); setToast('');
   }
-  if (!data) return <div className="v2-boot"><span><IconBuildingFactory2 size={30} /></span><h1>HRFlow AI</h1><p>{error || '正在连接人才协同工作台…'}</p>{error && <button className="v2-button primary" onClick={() => { setError(''); refresh().catch(reason => setError(reason.message)); }}>重新连接</button>}</div>;
+  if (!data) return <div className="v2-boot"><span><IconBuildingFactory2 size={30} /></span><h1>People-Lab</h1><p>{error || '正在连接人才协同工作台…'}</p>{error && <button className="v2-button primary" onClick={() => { setError(''); refresh().catch(reason => setError(reason.message)); }}>重新连接</button>}</div>;
 
   const pageProps: PageProps = { data, busy, mutate, navigate, openKnowledge, focus: target };
   const pageKey = `${data.actor.id}-${revision}`;

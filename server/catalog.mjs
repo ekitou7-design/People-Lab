@@ -85,7 +85,7 @@ export const candidates = [
 export const knowledge = [
   {
     id: 'policy-leave', title: '员工请假与审批制度', category: '员工制度', version: '演示 v1.0', effectiveDate: '2026-01-01',
-    summary: '演示员工享有 3 天初始可用年假，支持单个工作日的整天或半天申请，由主管审批。', sourceLabel: 'HRFlow 演示制度 · 非企业真实制度',
+    summary: '演示员工享有 3 天初始可用年假，支持单个工作日的整天或半天申请，由主管审批。', sourceLabel: 'People-Lab 演示制度 · 非企业真实制度',
     sections: [
       { id: 'leave-balance', title: '1. 假期额度', content: '本演示为每位正式入职员工初始化 3 天可用年假。余额以员工档案的实际记录为准；待审批申请不扣减余额，主管批准时重新校验并扣减。' },
       { id: 'leave-request', title: '2. 申请范围与材料', content: '本演示一次申请仅覆盖一个工作日，可选择上午、下午或全天，半天计 0.5 天、全天计 1 天。请填写日期、时段与请假原因。周末和过去日期不可申请。' },
@@ -94,7 +94,7 @@ export const knowledge = [
   },
   {
     id: 'guide-onboarding', title: '新员工入职与服务指南', category: '入职指南', version: '演示 v1.0', effectiveDate: '2026-01-01',
-    summary: '完成资料核对、协议确认和入职说明后，HR 确认入职，系统开放员工服务与岗位培训。', sourceLabel: 'HRFlow 演示指南 · 非企业真实制度',
+    summary: '完成资料核对、协议确认和入职说明后，HR 确认入职，系统开放员工服务与岗位培训。', sourceLabel: 'People-Lab 演示指南 · 非企业真实制度',
     sections: [
       { id: 'onboarding-materials', title: '1. 入职材料与确认', content: '演示入职清单包含身份与资料核对、入职协议确认、入职说明与主管交接三个项目。本系统仅记录核对状态，请勿上传真实身份证、银行卡或其他敏感材料。' },
       { id: 'onboarding-activation', title: '2. 正式入职', content: 'HR 完成全部入职清单并确认入职后，员工档案转为在职，系统分配岗位必修培训，以及 HR 明确确认的发展任务。简历中缺少证据的能力不会自动变成培训缺陷。' },
@@ -103,7 +103,7 @@ export const knowledge = [
   },
   {
     id: 'sop-quality', title: '质量检验与不合格品处置 SOP', category: '岗位 SOP', version: '演示 v1.0', effectiveDate: '2026-01-01',
-    summary: '按版本核对、隔离标识、完整记录、规定上报、复核闭环的步骤处理检验异常。', sourceLabel: 'HRFlow 自编演示 SOP · 不作为真实作业依据',
+    summary: '按版本核对、隔离标识、完整记录、规定上报、复核闭环的步骤处理检验异常。', sourceLabel: 'People-Lab 自编演示 SOP · 不作为真实作业依据',
     sections: [
       { id: 'sop-preparation', title: '1. 检验准备', content: '开始检验前，核对图纸与作业指导书版本、产品批次及量具状态。根据受控文件确认检验项目和判定标准；信息冲突时先请主管确认，不自行变更标准。' },
       { id: 'sop-isolate', title: '2. 隔离与标识', content: '发现不合格品后，立即隔离并清晰标识相关产品与批次，防止继续流入下一工序；不得擅自放行或自行丢弃。' },
