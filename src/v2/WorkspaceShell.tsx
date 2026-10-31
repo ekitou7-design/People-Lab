@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { IconArrowUpRight, IconBook2, IconBuildingFactory2, IconChevronRight, IconLayoutDashboard, IconMenu2, IconMessageCircle, IconPlayerPlay, IconRefresh, IconSchool, IconShieldCheck, IconUserPlus, IconUsers, IconX } from '@tabler/icons-react';
+import { IconArrowUpRight, IconBook2, IconBuildingFactory2, IconChevronRight, IconLayoutDashboard, IconMenu2, IconMessageCircle, IconPlayerPlay, IconRefresh, IconSchool, IconShieldCheck, IconUserPlus, IconUsers, IconUsersGroup, IconX } from '@tabler/icons-react';
 import type { Bootstrap } from '../../shared/contracts';
 import type { NavigationTarget, Page } from './types';
 import { Avatar } from './ui';
@@ -16,6 +16,7 @@ export interface WorkspaceShellProps {
 }
 const items = [
   { page: 'order2people' as Page, label: '生产需求', title: '生产需求与能力', icon: IconBuildingFactory2 },
+  { page: 'skillbridge' as Page, label: 'SkillBridge', title: 'SkillBridge 能力供给', icon: IconUsersGroup },
   { page: 'dashboard' as Page, label: '驾驶舱', title: '人才工作台', icon: IconLayoutDashboard },
   { page: 'recruitment' as Page, label: '招聘工作台', title: '招聘证据审阅', icon: IconUsers },
   { page: 'onboarding' as Page, label: '入职管理', title: '入职办理', icon: IconUserPlus },
@@ -28,7 +29,7 @@ const roles = { hr: 'HR 管理员', manager: '部门主管', employee: '员工' 
 export function WorkspaceShell({ data, page, busy, onNavigate, onActorChange, onOpenGuide, onOpenReset, children }: WorkspaceShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = (target: NavigationTarget) => { setMenuOpen(false); onNavigate(target); };
-  const navItems = items.filter(item => (item.page !== 'order2people' || data.actor.role !== 'employee') && (item.page !== 'recruitment' || data.actor.role === 'hr') && (item.page !== 'onboarding' || data.actor.role !== 'employee'));
+  const navItems = items.filter(item => (item.page !== 'order2people' || data.actor.role !== 'employee') && (item.page !== 'skillbridge' || data.actor.role !== 'employee') && (item.page !== 'recruitment' || data.actor.role === 'hr') && (item.page !== 'onboarding' || data.actor.role !== 'employee'));
   const pending = data.leaves.filter(item => item.status === 'pending').length + data.tickets.filter(item => item.status === 'open').length;
   return <div className="v2-workspace">
     <a className="v2-skip-link" href="#v2-main">跳到主要内容</a>

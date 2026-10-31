@@ -115,3 +115,30 @@ P0 联合计算使用 demo 场地完整聚合中的全部订单、人员档案�
 破坏性变更必须记录字段、迁移、消费者、批准人和兼容期；实际文件和接口路径在 M0 冻结后方可认领实施。
 
 | 2026-10-31 | v1.0 | 实现端点、共享类型、日历完整性字段、演示权限、样例恢复和不可执行状态；P1 未实现 | Order2People UI/API 与后续 SkillBridge | 用户 Goal 授权实施；新增接口不改变 HR-V2 消费者，团队通过 PR 复核 |
+
+## SkillBridge 接口（第二阶段，已实现）
+
+前缀 `/api/v1/skillbridge`。类型见 `shared/skillbridge.ts`，实现见 `server/skillbridge-api.mjs`、`server/skillbridge-engine.mjs`。错误形状沿用 `{error:{code,message}}`。写操作须带 `requestKey`（幂等）。仅 actor-hr、actor-manager 可访问，其他身份 403；此为固定演示授权，不是生产认证。
+
+| 端点 | 请求 | 成功响应 | 权限 |
+| --- | --- | --- | --- |
+| GET /cases?calculationId= | — | 200 `{items:SkillBridgeCase[],nextCursor:null}`；上游已过期的记录实时返回 `status=demand_stale` | HR/主管 |
+| GET /cases/:id | — | 200 SkillBridgeCase（同样实时判定 demand_stale） | HR/主管 |
+| GET /cases/:id/candidates | — | 200 `{caseId,candidates:InternalCandidate[]}` | HR/主管 |
+| POST /cases | calculationId, demandId（`<calculationId>:<demandId>`）, requestKey | 201 SkillBridgeCase，含候选人与三类路径草稿；同一需求重复发起返回已有记录 | HR |
+| PATCH /proposals/:id/review | decision（hr_approved/hr_rejected）, note（必填）, expectedRevision, requestKey | 200 新版本方案，记录审核人、时间、说明，保留历史 | HR |
+| POST /demo/reset | requestKey | 200 `{employeeId,message}`；新增带"演示虚构"标记的相近技能员工、未核验资格和日历，以新版本写入，不覆盖其他记录 | HR |
+
+规则：
+- 发起分析时服务端重新读取 Order2People 计算记录，仅接受 confirmed、complete 且非 stale 的结果，且该需求行缺口大于 0；否则 409 RESULT_NOT_EXPORTABLE（不信任客户端传入的需求内容）。
+- 候选人分三类：qualified_verified、potential_transferable、insufficient_evidence。无任何证据的员工不入选；培训完成或简历关键词不会成为正式资格；相近技能只给出"待核实"及补齐动作。已被占用的容量不重复提供。
+- 每个缺口始终给出内部调配、内部培养、外部招聘三类路径的可解释建议及风险和未知项；方案不代表承诺。
+- 审核为人工决定。SkillBridge 不写入 Order2People 数据、不创建培训任务、不修改资格、不自动批准；上游结果过期后案例变为 demand_stale，仅供历史查看，不再允许审核。
+- 演示员工在 `isDemoFixture` 中明确标记。
+
+`POST /demo/reset` 会新增一名在职演示员工，按契约使既有 Order2People 计算结果过期，须重新计算并确认。
+
+| 日期 | 版本 | 变更 | 影响方 | 确认状态 |
+| --- | --- | --- | --- | --- |
+| 2026-10-31 | SkillBridge v1.0 | 新增 `/api/v1/skillbridge/*`；向后兼容，不改动既有端点语义 | Order2People（只读被消费）、招聘与培训页面（仅导航跳转） | 随 PR 提交，待团队复核；未向外部发送消息 |
+
