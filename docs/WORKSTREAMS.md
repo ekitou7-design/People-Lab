@@ -62,3 +62,26 @@ W4 的 AI 提取是 P1，可独立延后；没有模型服务时保留人工录�
 决策：PRD 与契约优先；P1 AI 不实现。演示 scope 固定为 demo，由服务端授予 actor-manager/actor-hr，员工无权限。仅向后兼容新增端点，不需要改变旧消费者；未向外部队友发消息。非作者团队审核在 PR 后由团队完成。
 
 实施验证：引擎、API、前端、演示和自动化检查已实现；实际验收见 ORDER2PEOPLE-DELIVERY.md。团队非作者审核安排在 PR 中，合并门仍保留。
+
+## SkillBridge 第二阶段授权记录（2026-10-31）
+
+用户 Goal 在本轮会话中明确授权解除 AGENTS.md 第8行"进入 SkillBridge 实现仍须另行授权"的阻断，批准按本次任务说明开始 SkillBridge 第一版实现。授权范围：内部人才发现、技能差距分析、调配/培养/外部招聘三类供给路径建议、与招聘/培训模块的真实数据连接、HR 审核留痕。
+
+本授权修订第32行"SkillBridge 只校验需求输出结构，不实施迁移推荐"的历史规划：该限制适用于第一阶段 Order2People 交付窗口（M1–M4，未涉及 SkillBridge 实现）；第二阶段起，SkillBridge 在只读消费已确认 Order2People 快照的前提下，新增确定性技能规则分析与人工审核留痕，不修改、不重算上游快照，不自动把培训完成或简历关键词转为正式资格。
+
+分支：`feat/skillbridge-phase2`，基于最新 `origin/main`（`c6c165a`）。允许范围：新增 `server/skillbridge-*.mjs`、`shared/skillbridge.ts`、`tests/skillbridge-*.test.mjs`、`scripts/skillbridge-e2e.mjs`、`src/v2/SkillBridge*.tsx`、`src/v2/SkillBridge.css`；集成接线限 `server/app.mjs`（挂载新路由）、`src/v2/{WorkbenchApp,WorkspaceShell,types}.tsx/ts`（新增导航项与跳转目标）、`src/v2/Order2PeoplePage.tsx`（新增"发起 SkillBridge 分析"入口按钮）、`package.json`（新增 test 脚本）。不改动 Order2People 计算引擎（`order2people-engine.mjs`）、不改既有 HR-V2 业务语义、不删除队友未提交代码。
+
+品牌统一 PR #2（`chore/brand-people-lab`）在远程未合并；本轮不等待其合并，也不修改该分支涉及的文件；如与其产生视觉冲突，交由该 PR 负责人后续统一调整。
+
+## SkillBridge 共享接口提案（2026-10-31，待实现后随 PR 通知）
+
+按 API-CONTRACTS.md 第97行标注的未来消费接口方向，新增：
+
+| 提案 | 说明 | 影响方 | 确认状态 |
+| --- | --- | --- | --- |
+| `GET/POST /api/v1/skillbridge/cases` | 围绕一个 Order2People `demandId` 发起/查看分析会话；只读消费 `skillbridge-demands` 导出，拒绝 stale/未确认/不完整的上游需求 | Order2People（只读消费者，不改其数据）、未来 Capability Graph/Simulator | 本轮实现，PR 中请求团队确认 |
+| `GET /api/v1/skillbridge/cases/:id/candidates` | 内部人才发现结果：已验证/潜在可迁移/证据不足三分类 + 当前可用容量 | 员工资格与日历数据（只读） | 同上 |
+| `POST /api/v1/skillbridge/cases/:id/proposals` | HR 创建调配/培养/外部招聘路径草稿 | 招聘模块（候选人/stage）、培训模块（TrainingTask） | 同上 |
+| `PATCH /api/v1/skillbridge/proposals/:id/review` | HR 审核状态与留痕 | 同上 | 同上 |
+
+兼容性：新增 `/api/v1/skillbridge` 前缀，不改动既有 `/api/v1/order2people/*`、`/api/bootstrap` 或 HR-V2 端点语义；错误形状沿用 `{error:{code,message,details}}`。
