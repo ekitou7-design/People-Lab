@@ -1,5 +1,8 @@
 # HRFlow AI · 协同工作台 v2
 
+> 历史记录：下文仅对应当时版本与验证，不代表当前交付。最新见[文档导航](../README.md)、[评委上手](../JUDGES-QUICKSTART.md)及[本轮验证](../VALIDATION.md)。
+
+
 [打开可编辑 Figma Design 文件](https://www.figma.com/design/EBXWvieYKTM1od7pnZOrwS?node-id=6-1230)。文件使用当前连接团队的草稿，名称为“HRFlow AI · 协同工作台 v2”。
 
 ## 文件结构与使用

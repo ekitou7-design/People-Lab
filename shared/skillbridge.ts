@@ -43,6 +43,8 @@ export type CandidateClassification =
 export interface CandidateCapacitySnapshot {
   /** Sourced from Order2People CapacityCalendar/CapacityReservation for the same demand window; null if unknown. */
   availableSecondsInWindow: number | null;
+  netSecondsInWindow?: number;
+  allocatedSecondsInDay?: number;
   /** Seconds already committed via CapacityReservation inside the demand window; always counted, never re-offered as free capacity. */
   committedSecondsInWindow: number;
   /** True only when both calendar and reservation completeness flags were confirmed for the relevant dates. */
@@ -77,6 +79,21 @@ export interface PathRationale {
 
 export type ProposalStatus = 'draft' | 'hr_approved' | 'hr_rejected';
 
+/** What, if anything, has actually been created in Recruitment/Training/Order2People from this proposal. */
+export type ExecutionStatus = 'not_executed' | 'executed' | 'blocked_stale';
+
+export interface ProposalExecution {
+  status: ExecutionStatus;
+  /** 'training_task' (development_plan) | 'requisition' (external_requisition) | 'capacity_reservation' (internal_assignment). */
+  refType: 'training_task' | 'requisition' | 'capacity_reservation' | null;
+  /** TrainingTask.id, RecruitmentRequisition.id, or CapacityReservation.id. */
+  refId: string | null;
+  executedBy: string | null;
+  executedAt: string | null;
+  /** Human note captured at execution time, e.g. manager's risk acknowledgement for an internal assignment. */
+  note: string | null;
+}
+
 export interface SkillBridgeProposal {
   id: string;
   revision: number;
@@ -89,9 +106,34 @@ export interface SkillBridgeProposal {
   reviewedBy: string | null;
   reviewedAt: string | null;
   reviewNote: string | null;
+  /** Set only once HR executes an approved proposal; never auto-populated by review alone. */
+  execution: ProposalExecution;
   createdBy: string;
   createdAt: string;
   history?: SkillBridgeProposal[];
+}
+
+/** Lightweight recruitment-need draft created from an external_requisition proposal.
+ *  Not a Candidate — no fabricated person is ever created. HR links real candidates manually. */
+export type RequisitionStatus = 'draft' | 'open' | 'closed';
+
+export interface RecruitmentRequisition {
+  id: string;
+  revision: number;
+  caseId: string;
+  proposalId: string;
+  positionId: string;
+  operationId: string;
+  skillRequirements: SkillRequirement[];
+  window: Window;
+  gapSeconds: number;
+  status: RequisitionStatus;
+  note: string;
+  /** Candidate.id values HR has manually linked as being evaluated against this requisition. */
+  linkedCandidateIds: string[];
+  createdBy: string;
+  createdAt: string;
+  history?: RecruitmentRequisition[];
 }
 
 export type CaseStatus = 'open' | 'demand_stale';
@@ -108,6 +150,7 @@ export interface SkillBridgeCase {
   demandId: string;
   /** Snapshot of the SkillBridgeDemand at case-creation time, for traceability. Not re-fetched live. */
   demandSnapshot: {
+    orderRef?: { id: string; revision: number };
     positionId: string;
     operationId: string;
     requirements: SkillRequirement[];

@@ -1,5 +1,8 @@
 # 多人协作与集成规则
 
+> 当前交付导航（2026-10-31）：[评委上手](JUDGES-QUICKSTART.md) · [使用说明](USER-GUIDE.md) · [队友移交](HANDOFF.md) · [文档索引](README.md)。本任务集成入口为PR #5，含PR #4依赖；以GitHub确认合并状态。下文原阶段/验证记录保留对应时间语境。
+
+
 状态：历史规划与本次实施记录。用户 Goal 已授权 W1–W5，由当前 Agent 串行实施；不表示队友已接受建议分工。
 
 ## 基线与已知风险
@@ -85,3 +88,26 @@ W4 的 AI 提取是 P1，可独立延后；没有模型服务时保留人工录�
 | `PATCH /api/v1/skillbridge/proposals/:id/review` | HR 审核状态与留痕 | 同上 | 同上 |
 
 兼容性：新增 `/api/v1/skillbridge` 前缀，不改动既有 `/api/v1/order2people/*`、`/api/bootstrap` 或 HR-V2 端点语义；错误形状沿用 `{error:{code,message,details}}`。
+
+## 第三阶段 人才执行闭环授权记录（2026-10-31）
+
+用户 Goal 明确授权本轮会话合并 PR #2、PR #3 后，继续开发第三阶段：把 Order2People 能力缺口、SkillBridge 方案与招聘、培训模块的真实数据与状态连接起来，形成可操作闭环。本授权落地第76-85行"SkillBridge 共享接口提案"中标注的 `POST .../proposals/:id/execute` 写入方向（原提案路径名为 `cases/:id/proposals`，实现时改为对既有 `proposals/:id` 追加 `/execute` 子资源，语义一致：仍是"HR 对某一方案采取的、会写入招聘/培训模块的动作"，仅路径形式调整，已在 API-CONTRACTS.md 记录变更）。
+
+分支：`feat/talent-execution`，基于已合并 PR #2、PR #3 后的最新 `main`。允许范围：
+- 新增 `server/skillbridge-api.mjs` 的 `execute`/`requisitions` 端点（同文件内新增，未新建文件）、`tests/talent-execution.test.mjs`、`scripts/talent-execution-e2e.mjs`。
+- `shared/skillbridge.ts` 新增 `ProposalExecution`/`RecruitmentRequisition` 类型；`shared/contracts.ts` 的 `TrainingTask` 新增可选 `skillBridgeCaseId`/`skillBridgeProposalId` 字段（向后兼容，不改变现有字段）。
+- 集成接线限 `src/v2/SkillBridgePage.tsx`（执行表单与落地状态展示）、`src/v2/RecruitmentPage.tsx`（新增招聘需求草稿区块）、`src/v2/TrainingPage.tsx`（新增 SkillBridge 来源回链提示）、对应 CSS、`package.json`（新增 `test:talent-execution:e2e` 脚本）。
+- 不改动 `order2people-engine.mjs` 的计算语义；内部调配复用 Order2People 既有 `POST /reservations` 校验逻辑（`validateRecord('reservations', ...)`）与既有 `invalidate()` 过期机制写入同一 `state.order2people.reservations` 集合，未新增平行的容量模型。
+- 不自动批准任何方案：执行端点只接受 `status=hr_approved` 的方案；内部调配额外要求请求体显式提供主管确认人与风险说明，不满足则 400，不写入任何记录。
+- 不把培训完成等同于资格：`development_plan` 执行创建的 `TrainingTask` 完成后不触碰 `state.order2people.qualifications`，正式资格仍须经 Order2People 既有资格维护流程人工录入。
+- `external_requisition` 执行只创建招聘需求草稿，不创建或虚构 `Candidate`；HR 须在招聘工作台手工关联已存在的候选人。
+- 同时修复 `PATCH /proposals/:id/review` 此前只有前端隐藏表单、服务端未重新校验 stale 的缺口（见 API-CONTRACTS.md 执行规则小节），审核与执行均在服务端重新判定 `demand_stale`。
+
+验证：`npm run build`、`npm test`（36/36）、`npm run test:order2people:e2e`、`npm run test:skillbridge:e2e`（含新增的审批→执行两步校验）、`npm run test:talent-execution:e2e`（新增，内部调配表单约束 + 容量占用 + 需求草稿关联全流程）、`npm run test:audit` 均已本轮执行且通过，详见 PR 描述。未破坏历史 Order2People/SkillBridge 计算快照格式；未清除演示数据，仅通过临时数据库测试。
+
+### 2026-10-31 局部修复认领
+独立工作副本，分支 fix/talent-execution-ux，基于 07d465d。认领 SkillBridge 引擎/API/契约及回归、Workbench 同步、生产表单局部样式与首页入口。保留全部日常数据库和历史快照，不修改共享分支，不自动合并。尚未完成全部验收前不能视为可合并。
+
+## 2026-10-31 修复说明入口
+
+[使用说明](USER-GUIDE.md) · [队友及 Agent 移交](HANDOFF.md) · [本轮验证](VALIDATION.md)。容量以未承诺增量为准，资格覆盖完整需求窗口；部分时段调配无法证明区间时显式阻断。历史发布/阶段记录不是本轮验收。

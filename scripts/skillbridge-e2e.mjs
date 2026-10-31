@@ -80,30 +80,45 @@ try {
   await devProposal.getByRole('button', { name: 'HR 审核' }).click();
   await devProposal.getByLabel('审核说明').fill('同意先安排资格核验，暂不正式调配');
   await devProposal.getByRole('button', { name: '批准' }).click();
-  await page.getByText('已批准').first().waitFor();
+  await page.getByText('已批准', { exact: true }).and(page.locator(':visible')).first().waitFor();
   check(true, 'HR can approve a development-plan proposal with a review note');
 
-  // --- The development-path proposal links into the real Training workbench.
-  await devProposal.getByRole('button', { name: /查看培训工作台/ }).click();
+  // --- Executing the approved development-plan proposal creates a real TrainingTask and
+  // only then links into the real Training workbench (approval alone must not execute).
+  check(await devProposal.getByRole('button', { name: /查看培训工作台/ }).count() === 0, 'approval alone does not yet execute the proposal into a real training task');
+  await devProposal.getByRole('button', { name: '执行方案' }).click();
+  await devProposal.getByRole('button', { name: '确认执行' }).click();
+  await devProposal.getByText('已落地执行').waitFor();
+  check(true, 'HR can execute an approved development-plan proposal into a real training task');
+  await devProposal.getByRole('button', { name: /查看已创建的培训任务/ }).click();
   await page.getByRole('heading', { name: '岗位培训' }).waitFor();
-  check(true, 'development-plan proposal links into the real Training workbench, not a dead link');
+  check(true, 'executed development-plan proposal links into the real Training workbench, not a dead link');
 
-  // --- The external-requisition path links into the real Recruitment workbench.
+  // --- The external-requisition path requires its own approval + execution before it
+  // produces a real requisition draft and links into the real Recruitment workbench.
   await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
   await page.locator('.sb-demand-row', { hasText: '缺口 2.0 h' }).getByRole('button', { name: '查看分析' }).click();
   const extProposal = page.locator('.sb-proposal', { hasText: '外部招聘' }).first();
+  await extProposal.getByRole('button', { name: 'HR 审核' }).click();
+  await extProposal.getByLabel('审核说明').fill('同意生成招聘需求草稿');
+  await extProposal.getByRole('button', { name: '批准' }).click();
+  await extProposal.getByText('已批准').first().waitFor();
+  await extProposal.getByRole('button', { name: '执行方案' }).click();
+  await extProposal.getByRole('button', { name: '确认执行' }).click();
+  await extProposal.getByText('已落地执行').waitFor();
   await extProposal.getByRole('button', { name: /前往招聘工作台/ }).click();
   await page.getByRole('heading', { name: '招聘证据审阅' }).waitFor();
-  check(true, 'external-requisition path links into the real Recruitment workbench, not a dead link');
+  await page.getByText('来自 SkillBridge 的招聘需求草稿').waitFor();
+  check(true, 'executed external-requisition proposal creates a real requisition draft visible on the Recruitment workbench, not a dead link');
 
   // --- Review decision survives a full browser refresh (persisted, not client-only state).
   await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
   await page.locator('.sb-demand-row', { hasText: '缺口 2.0 h' }).getByRole('button', { name: '查看分析' }).click();
-  await page.getByText('已批准').first().waitFor();
+  await page.getByText('已批准', { exact: true }).and(page.locator(':visible')).first().waitFor();
   await page.reload();
   await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
   await page.locator('.sb-demand-row', { hasText: '缺口 2.0 h' }).getByRole('button', { name: '查看分析' }).click();
-  await page.getByText('已批准').first().waitFor();
+  await page.getByText('已批准', { exact: true }).and(page.locator(':visible')).first().waitFor();
   check(true, 'HR review decision persists across a browser refresh');
   await page.screenshot({ path: join(output, 'desktop.png'), fullPage: true, animations: 'disabled' });
 

@@ -87,9 +87,10 @@ export default function WorkbenchApp() {
   }
   if (!data) return <div className="v2-boot"><span><IconBuildingFactory2 size={30} /></span><h1>People-Lab</h1><p>{error || '正在连接人才协同工作台…'}</p>{error && <button className="v2-button primary" onClick={() => { setError(''); refresh().catch(reason => setError(reason.message)); }}>重新连接</button>}</div>;
 
-  const pageProps: PageProps = { data, busy, mutate, navigate, openKnowledge, focus: target };
+  const pageProps: PageProps = { data, busy, mutate, navigate, openKnowledge, refreshData: refresh, focus: target };
   const pageKey = `${data.actor.id}-${revision}`;
   const steps: { title: string; text: string; target: NavigationTarget; visible: boolean }[] = [
+    { title: '订单→缺口→人才路径→人工审核→执行反馈', text: '先维护生产输入并确认缺口，再分析人才路径；HR 批准后才可创建任务或草稿，调配须额外核验容量。规则演示，不是自动人事决策。', target: { page: 'order2people' }, visible: data.actor.role !== 'employee' },
     { title: '审阅候选人与能力证据', text: '同时查看匹配判断、简历原句和面试问题，由 HR 确认录用。', target: { page: 'recruitment', candidateId: 'cand-chen' }, visible: data.actor.role === 'hr' },
     { title: '完成核验并确认入职', text: '核验清单完成后激活员工档案，自动分配岗位培养任务。', target: { page: 'onboarding' }, visible: data.actor.role !== 'employee' },
     { title: '咨询制度、填写申请与审批', text: '切换员工身份，在办理卡中填写、预览并提交；主管身份处理审批。', target: { page: 'service' }, visible: true },
@@ -99,7 +100,7 @@ export default function WorkbenchApp() {
   return <WorkspaceShell key={data.actor.id} data={data} page={target.page} busy={busy} onNavigate={navigate} onActorChange={switchActor} onOpenGuide={() => setGuideOpen(true)} onOpenReset={() => { setResetError(''); setResetOpen(true); }}>
     {error && <div className="v2-global-error" role="alert"><span>{error}</span><button className="v2-button secondary" disabled={busy} onClick={() => refresh().then(() => setError('')).catch(reason => setError(reason.message))}>重新同步</button><button className="v2-icon-button" aria-label="关闭提示" onClick={() => setError('')}><IconX size={18} /></button></div>}
     {Object.entries(contexts).map(([page, focus]) => <div key={`${pageKey}-${page}`} style={{ display: target.page === page ? undefined : 'none' }} aria-hidden={target.page !== page || undefined}>
-      {page === 'order2people' && data.actor.role !== 'employee' && <Order2PeoplePage {...pageProps} />}
+      {page === 'order2people' && data.actor.role !== 'employee' && <Order2PeoplePage {...pageProps} focus={target.page === page ? target : focus} />}
       {page === 'skillbridge' && data.actor.role !== 'employee' && <SkillBridgePage {...pageProps} focus={focus} />}
       {page === 'dashboard' && <DashboardPage {...pageProps} focus={focus} />}
       {page === 'recruitment' && <RecruitmentPage {...pageProps} focus={focus} />}

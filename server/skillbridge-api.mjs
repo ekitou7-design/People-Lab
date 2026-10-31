@@ -2,12 +2,15 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { findInternalCandidates, buildPathRationales } from './skillbridge-engine.mjs';
 import { skillbridgeDemoEmployee, skillbridgeDemoQualification, skillbridgeDemoCalendar } from './skillbridge-demo.mjs';
+import { validateRecord as validateO2pRecord } from './order2people-records.mjs';
+import { position } from './catalog.mjs';
 
 const fail = (status, code, message) => { throw Object.assign(new Error(message), { status, code }); };
 const check = (v, message) => { if (!v) fail(400, 'INVALID_INPUT', message); };
-const initial = () => ({ cases: [] });
+const initial = () => ({ cases: [], requisitions: [] });
 const o2pCollections = ['orders', 'routings', 'qualifications', 'calendars', 'reservations'];
 const o2pInitial = () => Object.fromEntries([...o2pCollections, 'calculations'].map((k) => [k, []]));
+const noExecution = () => ({ status: 'not_executed', refType: null, refId: null, executedBy: null, executedAt: null, note: null });
 
 /**
  * SkillBridge only reads Order2People's own aggregate (orders/routings/qualifications/
@@ -21,11 +24,21 @@ export function skillbridgeRouter(store) {
     next();
   });
 
-  const read = () => { const state = store.read(); return { state, sb: state.skillbridge || initial() }; };
+  // Defensive defaults so cases/proposals created before `requisitions`/`execution` existed
+  // still read as valid shapes rather than throwing — never a silent data loss.
+  const read = () => {
+    const state = store.read();
+    const sb = state.skillbridge || initial();
+    sb.requisitions ??= [];
+    for (const c of sb.cases) for (const p of c.proposals) p.execution ??= noExecution();
+    return { state, sb };
+  };
   const mutate = (req, operation, fn) => {
     check(typeof req.body?.requestKey === 'string' && req.body.requestKey.length > 0, '缺少 requestKey');
     return store.transaction((state) => {
       state.skillbridge ??= initial();
+      state.skillbridge.requisitions ??= [];
+      for (const c of state.skillbridge.cases) for (const p of c.proposals) p.execution ??= noExecution();
       return fn(state.skillbridge, state);
     }, { actorId: req.actor.id, operation, key: req.body.requestKey, payload: req.body });
   };
@@ -128,6 +141,7 @@ export function skillbridgeRouter(store) {
       if (existing) return existing;
       const demand = { ...line, window: line.window };
       const candidates = findInternalCandidates(demand, {
+        allocations: calculation.allocations, orderIds: calculation.lines.map(l => l.orderRef.id),
         employees: state.employees,
         qualifications: state.order2people.qualifications,
         trainingTasks: state.trainingTasks,
@@ -137,13 +151,13 @@ export function skillbridgeRouter(store) {
       });
       const proposals = buildPathRationales(demand, candidates).map((rationale) => ({
         id: randomUUID(), revision: 1, caseId: null, path: rationale.path, employeeId: rationale.employeeId || null,
-        rationale, status: 'draft', reviewedBy: null, reviewedAt: null, reviewNote: null,
+        rationale, status: 'draft', reviewedBy: null, reviewedAt: null, reviewNote: null, execution: noExecution(),
         createdBy: req.actor.id, createdAt: new Date().toISOString(),
       }));
       const record = {
         id: randomUUID(), revision: 1, calculationId: calculation.id, demandId: fullDemandId,
         demandSnapshot: {
-          positionId: line.positionId, operationId: line.operationId, requirements: line.requirements,
+          orderRef: line.orderRef, positionId: line.positionId, operationId: line.operationId, requirements: line.requirements,
           window: line.window, gapSeconds: line.gapSeconds, sourceRefs: line.sourceRefs,
           inputHash: calculation.inputHash, engineVersion: calculation.engineVersion,
         },
@@ -171,10 +185,13 @@ export function skillbridgeRouter(store) {
     const { decision, note, expectedRevision } = req.body || {};
     check(['hr_approved', 'hr_rejected'].includes(decision), '审核结果须为 hr_approved 或 hr_rejected');
     check(typeof note === 'string' && note.trim().length > 0, '须填写审核说明');
-    const result = mutate(req, `review-proposal:${req.params.id}`, (sb) => {
+    const result = mutate(req, `review-proposal:${req.params.id}`, (sb, state) => {
       for (const c of sb.cases) {
         const proposal = c.proposals.find((p) => p.id === req.params.id);
         if (!proposal) continue;
+        // Re-verify staleness server-side too; the frontend already hides the form, but the
+        // API itself must not accept a review against a case whose upstream demand expired.
+        if (!isCalculationStillValid(state, c.calculationId)) fail(409, 'DEMAND_STALE', '上游需求已过期，不能继续审核');
         if (proposal.revision !== expectedRevision) fail(409, 'REVISION_CONFLICT', '方案版本已更新，请重新加载');
         const { history, ...previous } = proposal;
         const updated = {
@@ -189,6 +206,173 @@ export function skillbridgeRouter(store) {
     });
     res.json(result);
   });
+
+  /**
+   * POST /proposals/:id/execute — HR only. Turns an hr_approved proposal into a real,
+   * persisted record in the owning module, with full traceability back to this proposal:
+   *   - development_plan      -> new TrainingTask (Training workbench), kind 'development'.
+   *   - external_requisition  -> new RecruitmentRequisition draft (Recruitment workbench).
+   *   - internal_assignment   -> new Order2People CapacityReservation, but only after an
+   *                              explicit manager risk/capacity confirmation is supplied in
+   *                              the request body (never implied by the earlier HR review).
+   * Never runs for a proposal that is not hr_approved, never runs twice (idempotent via the
+   * proposal's own execution.status), and never runs against a stale case.
+   */
+  api.post('/proposals/:id/execute', (req, res) => {
+    if (req.actor.role !== 'hr') fail(403, 'FORBIDDEN', '仅 HR 可执行方案');
+    const { managerConfirmedBy, riskAcknowledgement, expectedRevision } = req.body || {};
+    const result = mutate(req, `execute-proposal:${req.params.id}`, (sb, state) => {
+      const c = sb.cases.find((item) => item.proposals.some((p) => p.id === req.params.id));
+      if (!c) fail(404, 'NOT_FOUND', '方案不存在');
+      const proposal = c.proposals.find((p) => p.id === req.params.id);
+      if (proposal.execution?.status === 'executed') return { case: c, proposal };
+      if (!isCalculationStillValid(state, c.calculationId)) {
+        const { history, ...previous } = proposal;
+        const blocked = { ...previous, execution: { status: 'blocked_stale', refType: null, refId: null, executedBy: null, executedAt: null, note: '上游需求已过期，不能继续执行' }, history: [...(history || []), previous] };
+        c.proposals[c.proposals.indexOf(proposal)] = blocked;
+        fail(409, 'DEMAND_STALE', '上游需求已过期，该方案不能继续执行');
+      }
+      check(typeof expectedRevision === 'number', '须提供方案当前版本号');
+      if (proposal.revision !== expectedRevision) fail(409, 'REVISION_CONFLICT', '方案版本已更新，请重新加载');
+      requireApproved(proposal);
+      let refType, refId, note;
+      if (proposal.path === 'development_plan') {
+        ({ refType, refId, note } = createTrainingTask(state, c, proposal, req.actor));
+      } else if (proposal.path === 'external_requisition') {
+        ({ refType, refId, note } = createRequisition(sb, c, proposal, req.actor));
+      } else {
+        check(typeof managerConfirmedBy === 'string' && managerConfirmedBy.trim().length > 0, '内部调配须提供主管确认人');
+        check(typeof riskAcknowledgement === 'string' && riskAcknowledgement.trim().length > 0, '内部调配须提供风险与原岗位影响说明，不允许未经确认直接调配');
+        ({ refType, refId, note } = createAssignmentReservation(state, c, proposal, req.actor, managerConfirmedBy.trim(), riskAcknowledgement.trim()));
+      }
+      const { history, ...previous } = proposal;
+      const updated = {
+        ...previous, revision: proposal.revision + 1,
+        execution: { status: 'executed', refType, refId, executedBy: req.actor.id, executedAt: new Date().toISOString(), note },
+        history: [...(history || []), previous],
+      };
+      c.proposals[c.proposals.indexOf(proposal)] = updated;
+      return { case: c, proposal: updated };
+    });
+    res.json(result.proposal);
+  });
+
+  // GET /requisitions — list recruitment-need drafts created from external_requisition proposals.
+  api.get('/requisitions', (req, res) => {
+    const { sb } = read();
+    res.json({ items: sb.requisitions, nextCursor: null });
+  });
+
+  // PATCH /requisitions/:id — HR only; link a real candidate under review, or change status.
+  // Never creates or invents a Candidate; only records which already-existing candidates HR
+  // is evaluating against this need, and whether the need is still open.
+  api.patch('/requisitions/:id', (req, res) => {
+    if (req.actor.role !== 'hr') fail(403, 'FORBIDDEN', '仅 HR 可维护招聘需求草稿');
+    const { status, linkedCandidateIds, expectedRevision } = req.body || {};
+    const result = mutate(req, `update-requisition:${req.params.id}`, (sb, state) => {
+      const requisition = sb.requisitions.find((r) => r.id === req.params.id);
+      if (!requisition) fail(404, 'NOT_FOUND', '招聘需求草稿不存在');
+      if (requisition.revision !== expectedRevision) fail(409, 'REVISION_CONFLICT', '需求草稿版本已更新，请重新加载');
+      if (status !== undefined) check(['draft', 'open', 'closed'].includes(status), '状态须为 draft/open/closed');
+      if (linkedCandidateIds !== undefined) {
+        check(Array.isArray(linkedCandidateIds) && linkedCandidateIds.every((id) => state.candidates.some((cand) => cand.id === id)), '关联候选人须引用已存在的候选人');
+      }
+      const { history, ...previous } = requisition;
+      const updated = {
+        ...previous, revision: requisition.revision + 1,
+        status: status ?? previous.status, linkedCandidateIds: linkedCandidateIds ?? previous.linkedCandidateIds,
+        history: [...(history || []), previous],
+      };
+      sb.requisitions[sb.requisitions.indexOf(requisition)] = updated;
+      return updated;
+    });
+    res.json(result);
+  });
+
+  function requireApproved(proposal) {
+    if (proposal.status !== 'hr_approved') fail(409, 'PROPOSAL_NOT_APPROVED', '仅已批准的方案可以执行，请先完成 HR 审核');
+  }
+
+  /** development_plan -> one new TrainingTask, traceable back to the case/proposal. */
+  function createTrainingTask(state, c, proposal, actor) {
+    check(typeof proposal.employeeId === 'string', '内部培养方案须关联具体员工');
+    const employee = state.employees.find((e) => e.id === proposal.employeeId && e.status === 'active');
+    if (!employee) fail(404, 'NOT_FOUND', '员工档案不存在或未在职');
+    const existing = state.trainingTasks.find((t) => t.skillBridgeProposalId === proposal.id);
+    if (existing) return { refType: 'training_task', refId: existing.id, note: '已存在关联培训任务，未重复创建', employeeName: employee.name };
+    const requirementSkillIds = c.demandSnapshot.requirements.map((r) => r.skillId);
+    const ability = position.abilities.find((a) => requirementSkillIds.includes(a.id));
+    const task = {
+      id: `train-${employee.id}-sb-${c.id.slice(0, 8)}`, employeeId: employee.id, kind: 'development',
+      title: `能力提升 · ${ability?.name || c.demandSnapshot.operationId}（SkillBridge）`,
+      description: `来自 SkillBridge 分析 ${c.id.slice(0, 8)} 的内部培养方案：${proposal.rationale.feasibilityNote} 完成本任务不代表已自动取得岗位资格，仍需资格维护负责人核验并在 Order2People 更新正式资格记录。`,
+      knowledgeId: 'sop-quality', status: 'not_started', attempts: [],
+      skillBridgeCaseId: c.id, skillBridgeProposalId: proposal.id,
+    };
+    state.trainingTasks.push(task);
+    return { refType: 'training_task', refId: task.id, note: `已创建培训任务「${task.title}」`, employeeName: employee.name };
+  }
+
+  /** external_requisition -> one new RecruitmentRequisition draft, never a fabricated Candidate. */
+  function createRequisition(sb, c, proposal, actor) {
+    const existing = sb.requisitions.find((r) => r.proposalId === proposal.id);
+    if (existing) return { refType: 'requisition', refId: existing.id, note: '已存在关联招聘需求草稿，未重复创建' };
+    const requisition = {
+      id: randomUUID(), revision: 1, caseId: c.id, proposalId: proposal.id,
+      positionId: c.demandSnapshot.positionId, operationId: c.demandSnapshot.operationId,
+      skillRequirements: c.demandSnapshot.requirements, window: c.demandSnapshot.window, gapSeconds: c.demandSnapshot.gapSeconds,
+      status: 'draft', note: proposal.rationale.feasibilityNote, linkedCandidateIds: [],
+      createdBy: actor.id, createdAt: new Date().toISOString(),
+    };
+    sb.requisitions.push(requisition);
+    return { refType: 'requisition', refId: requisition.id, note: `已创建招聘需求草稿 ${requisition.id.slice(0, 8)}` };
+  }
+
+  /**
+   * internal_assignment -> one new Order2People CapacityReservation for the proposed employee,
+   * covering the demand window. This genuinely commits capacity, so it correctly makes any
+   * calculation depending on that employee's calendar stale on next read (same invalidate()
+   * semantics order2people-api.mjs already applies) — an executed internal assignment must
+   * retire the gap it was meant to close, not silently keep claiming free capacity elsewhere.
+   */
+  function createAssignmentReservation(state, c, proposal, actor, managerConfirmedBy, riskAcknowledgement) {
+    check(typeof proposal.employeeId === 'string', '内部调配方案须关联具体员工');
+    const employee = state.employees.find((e) => e.id === proposal.employeeId && e.status === 'active');
+    if (!employee) fail(404, 'NOT_FOUND', '员工档案不存在或未在职');
+    state.order2people ??= o2pInitial();
+    const o2p = state.order2people;
+    const existing = o2p.reservations.find((r) => r.source?.sourceId === proposal.id);
+    if (existing) return { refType: 'capacity_reservation', refId: existing.id, note: '已存在关联容量占用记录，未重复创建', employeeName: employee.name };
+    const window = c.demandSnapshot.window;
+    const calculation = o2p.calculations.find(v => v.id === c.calculationId);
+    const candidate = findInternalCandidates({ ...c.demandSnapshot }, {
+      employees: state.employees, qualifications: o2p.qualifications, trainingTasks: state.trainingTasks,
+      calendars: o2p.calendars, reservations: o2p.reservations, demoEmployeeIds: demoEmployeeIds(state),
+      allocations: calculation.allocations, orderIds: calculation.lines.map(l => l.orderRef.id),
+    }).find(v => v.employeeId === employee.id);
+    const committedSeconds = c.demandSnapshot.gapSeconds;
+    if (candidate?.classification !== 'qualified_verified' || !candidate.capacity.capacityDataComplete
+      || candidate.capacity.availableSecondsInWindow < committedSeconds)
+      fail(409, 'ASSIGNMENT_UNAVAILABLE', '资格或增量容量不足；原分配不能再次用于补缺口');
+    // No segment allocations are persisted by v1. Never invent a partial interval.
+    if (!Number.isSafeInteger(committedSeconds) || committedSeconds <= 0
+      || committedSeconds !== (Date.parse(window.end) - Date.parse(window.start)) / 1000
+      || !c.demandSnapshot.orderRef?.id)
+      fail(409, 'ASSIGNMENT_INTERVAL_REQUIRED', '须补充可核验的实际调配区间及目标订单；当前模型不能安全表达部分时段承诺');
+    const reservation = {
+      id: `sb-assignment-${proposal.id}`, revision: 1, employeeId: employee.id, window, committedSeconds,
+      sourceOrderId: c.demandSnapshot.orderRef.id, sourceOperationId: c.demandSnapshot.operationId, status: 'active',
+      source: {
+        sourceType: 'skillbridge_assignment', sourceId: proposal.id, revision: 1,
+        locator: `skillbridge:case:${c.id}:proposal:${proposal.id}`,
+        confirmedBy: managerConfirmedBy, confirmedAt: new Date().toISOString(),
+      },
+      createdBy: actor.id, createdAt: new Date().toISOString(),
+    };
+    validateO2pRecord('reservations', reservation, state);
+    o2p.reservations.push(reservation);
+    return { refType: 'capacity_reservation', refId: reservation.id, note: `已为 ${employee.name} 创建容量占用（主管确认：${managerConfirmedBy}；风险说明：${riskAcknowledgement}），原计算结果将因此过期，须重新计算确认`, employeeName: employee.name };
+  }
 
   return api;
 }

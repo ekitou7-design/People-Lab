@@ -35,6 +35,11 @@ try {
     const exported = await download;
     check(exported.suggestedFilename().startsWith('skillbridge-'), 'confirmed result downloads SkillBridge JSON');
     await page.screenshot({ path: join(output, 'desktop.png'), fullPage: true, animations: 'disabled' });
+    await page.setViewportSize({ width: 1024, height: 1000 });
+    check(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), '1024px production form has no page overflow');
+    await page.screenshot({ path: join(output, 'tablet.png'), fullPage: true, animations: 'disabled' });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+
     await page.reload();
     await page.getByRole('button', { name: '生产需求', exact: true }).click();
     await page.getByText(/confirmed · v2/).waitFor();

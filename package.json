@@ -14,7 +14,11 @@
     "test:e2e": "node scripts/e2e.mjs",
     "test:audit": "node scripts/assistant-audit.mjs",
     "test:order2people:e2e": "node scripts/order2people-e2e.mjs",
-    "test:skillbridge:e2e": "node scripts/skillbridge-e2e.mjs"
+    "test:skillbridge:e2e": "node scripts/skillbridge-e2e.mjs",
+    "test:talent-execution:e2e": "node scripts/talent-execution-e2e.mjs",
+    "test:order2people": "npm run test:order2people:e2e",
+    "test:skillbridge": "npm run test:skillbridge:e2e",
+    "test:talent-execution": "npm run test:talent-execution:e2e"
   },
   "dependencies": {
     "@tabler/icons-react": "3.50.0",

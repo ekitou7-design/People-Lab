@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { IconAlertTriangle, IconArrowRight, IconArrowUpRight, IconBriefcase, IconCheck, IconSchool, IconShieldCheck, IconUsers, IconX } from '@tabler/icons-react';
+import { IconAlertTriangle, IconArrowRight, IconArrowUpRight, IconBolt, IconBriefcase, IconCheck, IconSchool, IconShieldCheck, IconUsers, IconX } from '@tabler/icons-react';
 import type { CalculationSnapshot, GapLine } from '../../shared/order2people';
 import type { InternalCandidate, ProposalPath, SkillBridgeCase, SkillBridgeProposal } from '../../shared/skillbridge';
 import type { PageProps } from './types';
@@ -18,8 +18,11 @@ const pathLabels: Record<ProposalPath, string> = { internal_assignment: '内部�
 const pathIcons: Record<ProposalPath, typeof IconUsers> = { internal_assignment: IconUsers, development_plan: IconSchool, external_requisition: IconBriefcase };
 const proposalStatusLabels = { draft: '待 HR 审核', hr_approved: '已批准', hr_rejected: '已拒绝' } as const;
 const proposalStatusTones: Record<string, Tone> = { draft: 'blue', hr_approved: 'green', hr_rejected: 'red' };
+const executionLabels = { not_executed: '尚未落地执行', executed: '已落地执行', blocked_stale: '上游已过期，无法执行' } as const;
+const executionTones: Record<string, Tone> = { not_executed: 'gray', executed: 'green', blocked_stale: 'red' };
+const refTypeLabels = { training_task: '培训任务', requisition: '招聘需求草稿', capacity_reservation: '容量占用' } as const;
 
-export function SkillBridgePage({ data, navigate, focus }: PageProps) {
+export function SkillBridgePage({ data, navigate, focus, refreshData }: PageProps) {
   const [calculations, setCalculations] = useState<CalculationSnapshot[]>([]);
   const [cases, setCases] = useState<SkillBridgeCase[]>([]);
   const [activeCaseId, setActiveCaseId] = useState(focus?.caseId || '');
@@ -28,6 +31,10 @@ export function SkillBridgePage({ data, navigate, focus }: PageProps) {
   const [reviewOpenId, setReviewOpenId] = useState('');
   const [reviewNote, setReviewNote] = useState('');
   const [reviewError, setReviewError] = useState('');
+  const [executeOpenId, setExecuteOpenId] = useState('');
+  const [managerConfirmedBy, setManagerConfirmedBy] = useState('');
+  const [riskAcknowledgement, setRiskAcknowledgement] = useState('');
+  const [executeError, setExecuteError] = useState('');
 
   const request = async (url: string, body?: unknown, method = 'POST') => {
     const r = await fetch(url, { method: body ? method : 'GET', headers: { 'Content-Type': 'application/json', 'x-demo-actor': data.actor.id }, ...(body ? { body: JSON.stringify(body) } : {}) });
@@ -46,7 +53,7 @@ export function SkillBridgePage({ data, navigate, focus }: PageProps) {
   useEffect(() => { if (focus?.caseId) setActiveCaseId(focus.caseId); }, [focus?.caseId]);
   const act = async (fn: () => Promise<void>) => {
     setBusy(true); setError('');
-    try { await fn(); await refresh(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+    try { await fn(); await refresh(); try { await refreshData?.(); } catch { setError("已创建，暂未同步。请重试同步，勿重复执行。"); } } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   };
 
   // Confirmed + complete + non-stale calculations with at least one uncovered gap line are
@@ -75,6 +82,26 @@ export function SkillBridgePage({ data, navigate, focus }: PageProps) {
     } catch (e) { setReviewError((e as Error).message); }
   }
 
+  // Internal assignment requires an explicit manager confirmation + risk note before any
+  // reservation is written; development/external paths need no extra confirmation beyond
+  // the HR approval that already happened in review().
+  async function submitExecute(proposal: SkillBridgeProposal) {
+    if (proposal.path === 'internal_assignment' && (!managerConfirmedBy.trim() || !riskAcknowledgement.trim())) {
+      setExecuteError('内部调配须填写主管确认人与风险说明，不允许未经确认直接调配');
+      return;
+    }
+    setExecuteError('');
+    try {
+      await act(async () => {
+        await request(`${sbBase}/proposals/${proposal.id}/execute`, {
+          expectedRevision: proposal.revision, requestKey: crypto.randomUUID(),
+          ...(proposal.path === 'internal_assignment' ? { managerConfirmedBy: managerConfirmedBy.trim(), riskAcknowledgement: riskAcknowledgement.trim() } : {}),
+        });
+      });
+      setExecuteOpenId(''); setManagerConfirmedBy(''); setRiskAcknowledgement('');
+    } catch (e) { setExecuteError((e as Error).message); }
+  }
+
   if (data.actor.role === 'employee') {
     return <><PageHeader title="SkillBridge · 能力供给分析" /><section className="v2-card"><EmptyState title="SkillBridge 由 HR 与主管使用" description="请切换为 HR 或主管演示身份查看能力缺口的供给路径分析。" /></section></>;
   }
@@ -84,7 +111,7 @@ export function SkillBridgePage({ data, navigate, focus }: PageProps) {
       description="只读消费 Order2People 已确认需求：内部有没有合适的人？没有现成人选时谁具备可迁移技能？什么时候必须考虑外部招聘？"
       actions={data.actor.role === 'hr' && <button className="v2-button secondary compact" disabled={busy} onClick={() => void act(async () => { await request(`${sbBase}/demo/reset`, { requestKey: crypto.randomUUID() }); })}>载入内部人才演示样例</button>} />
     <p className="v2-notice"><IconShieldCheck size={17} />技能匹配基于已验证资格与人工证据，不使用大模型推理；培训完成或简历关键词不会被当作正式资格。</p>
-    {error && <p role="alert" className="v2-form-error">{error}</p>}
+    {error && <p role="alert" className="v2-form-error">{error}{error.includes("暂未同步") && <button disabled={busy} onClick={() => void act(async () => {})}>重试同步</button>}</p>}
 
     <div className="sb-grid">
       <article className="v2-card sb-demand-list">
@@ -145,14 +172,32 @@ export function SkillBridgePage({ data, navigate, focus }: PageProps) {
                 <div className="sb-risks"><strong>风险与未知项</strong><ul>{proposal.rationale.risks.map((r, i) => <li key={i}>{r}</li>)}</ul></div>
                 <p className="sb-next-action"><IconArrowRight size={14} />{proposal.rationale.nextAction}</p>
                 {proposal.reviewedBy && <p className="sb-review-trail"><IconCheck size={13} />由 {proposal.reviewedBy} 于 {new Date(proposal.reviewedAt!).toLocaleString('zh-CN')} 审核：{proposal.reviewNote}</p>}
+                <p className="sb-execution-trail"><StatusBadge tone={executionTones[proposal.execution.status]}>{executionLabels[proposal.execution.status]}</StatusBadge>{proposal.execution.status === 'executed' && <span> · {refTypeLabels[proposal.execution.refType!]} · 由 {proposal.execution.executedBy} 于 {new Date(proposal.execution.executedAt!).toLocaleString('zh-CN')} 执行</span>}</p>
                 <div className="sb-proposal-actions">
                   {data.actor.role === 'hr' && proposal.status === 'draft' && activeCase.status !== 'demand_stale' && (reviewOpenId === proposal.id ? <div className="sb-review-form">
                     <textarea aria-label="审核说明" rows={2} value={reviewNote} onChange={(e) => setReviewNote(e.target.value)} placeholder="请填写审核依据，例如：已与主管确认原岗位容量" />
                     {reviewError && <p className="v2-form-error">{reviewError}</p>}
                     <div><button className="v2-button primary compact" disabled={busy} onClick={() => void submitReview(proposal, 'hr_approved')}>批准<IconCheck size={14} /></button><button className="v2-button secondary compact" disabled={busy} onClick={() => void submitReview(proposal, 'hr_rejected')}>拒绝<IconX size={14} /></button><button className="v2-button secondary compact" onClick={() => { setReviewOpenId(''); setReviewError(''); }}>取消</button></div>
                   </div> : <button className="v2-button secondary compact" onClick={() => { setReviewOpenId(proposal.id); setReviewNote(''); setReviewError(''); }}>HR 审核</button>)}
-                  {proposal.path === 'development_plan' && proposal.employeeId && <button className="v2-button secondary compact" onClick={() => navigate({ page: 'training', employeeId: proposal.employeeId ?? undefined })}>查看培训工作台<IconArrowUpRight size={14} /></button>}
-                  {proposal.path === 'external_requisition' && <button className="v2-button secondary compact" onClick={() => navigate({ page: 'recruitment', stage: 'all' })}>前往招聘工作台<IconArrowUpRight size={14} /></button>}
+
+                  {/* Execution: only offered once HR has approved, and only once per proposal.
+                      Internal assignment additionally requires an explicit manager risk form —
+                      HR approval alone never implies a confirmed reassignment. */}
+                  {data.actor.role === 'hr' && proposal.status === 'hr_approved' && proposal.execution.status === 'not_executed' && activeCase.status !== 'demand_stale' && (
+                    executeOpenId === proposal.id ? <div className="sb-review-form">
+                      {proposal.path === 'internal_assignment' && <>
+                        <label>主管确认人<input aria-label="主管确认人" value={managerConfirmedBy} onChange={(e) => setManagerConfirmedBy(e.target.value)} placeholder="例如：周明远" /></label>
+                        <textarea aria-label="风险与原岗位影响说明" rows={2} value={riskAcknowledgement} onChange={(e) => setRiskAcknowledgement(e.target.value)} placeholder="须说明已确认原岗位任务不受影响，不允许未经确认直接调配" />
+                      </>}
+                      {executeError && <p className="v2-form-error">{executeError}</p>}
+                      <div><button className="v2-button primary compact" disabled={busy} onClick={() => void submitExecute(proposal)}>确认执行<IconBolt size={14} /></button><button className="v2-button secondary compact" onClick={() => { setExecuteOpenId(''); setExecuteError(''); }}>取消</button></div>
+                    </div> : <button className="v2-button primary compact" onClick={() => { setExecuteOpenId(proposal.id); setManagerConfirmedBy(''); setRiskAcknowledgement(''); setExecuteError(''); }}>执行方案<IconBolt size={14} /></button>
+                  )}
+
+                  {/* Once executed, link straight to the real record instead of a generic page. */}
+                  {proposal.execution.status === 'executed' && proposal.path === 'development_plan' && <button className="v2-button secondary compact" onClick={() => navigate({ page: 'training', taskId: proposal.execution.refId ?? undefined, employeeId: proposal.employeeId ?? undefined })}>查看已创建的培训任务<IconArrowUpRight size={14} /></button>}
+                  {proposal.execution.status === 'executed' && proposal.path === 'external_requisition' && <button className="v2-button secondary compact" onClick={() => navigate({ page: 'recruitment', stage: 'all' })}>前往招聘工作台查看需求草稿<IconArrowUpRight size={14} /></button>}
+                  {proposal.execution.status === 'executed' && proposal.path === 'internal_assignment' && <button className="v2-button secondary compact" onClick={() => navigate({ page: 'order2people' })}>前往生产需求查看占用与重新计算<IconArrowUpRight size={14} /></button>}
                 </div>
               </div>;
             })}

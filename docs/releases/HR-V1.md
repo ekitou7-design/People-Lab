@@ -1,5 +1,8 @@
 # HR-V1 · HRFlow AI 本地交互 Demo
 
+> 历史记录：下文仅对应当时版本与验证，不代表当前交付。最新见[文档导航](../README.md)、[评委上手](../JUDGES-QUICKSTART.md)及[本轮验证](../VALIDATION.md)。
+
+
 发布日期：2026-10-30。
 
 首个可运行版本，面向制造企业 HR 场景，打通同一人的招聘、入职、员工服务、请假审批、岗位培训与管理统计。采用 React + TypeScript + Vite、Express 与 SQLite，无需模型密钥；首次安装依赖、完成构建后可离线演示。

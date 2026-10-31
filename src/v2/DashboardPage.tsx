@@ -8,6 +8,22 @@ const stageLabels = { screening: '待筛选', interview: '待面试', decision: 
 
 export function DashboardPage({ data, navigate, openKnowledge, focus }: PageProps) {
   const [selectedId, setSelectedId] = useState('');
+  const [production, setProduction] = useState('正在读取生产进度…');
+  useEffect(() => {
+    if (data.actor.role === 'employee') return;
+    let active = true;
+    Promise.all(['/api/v1/order2people/orders', '/api/v1/order2people/calculations', '/api/v1/skillbridge/cases'].map(async url => {
+      const response = await fetch(url, { headers: { 'x-demo-actor': data.actor.id } });
+      if (!response.ok) throw Error('生产进度暂未同步');
+      return response.json();
+    })).then(([orders, calculations, cases]) => {
+      const latest = calculations.items.at(-1);
+      const proposals = cases.items.flatMap((c: { proposals: { status: string; execution?: { status: string } }[] }) => c.proposals);
+      if (active) setProduction(`${orders.items.length} 个订单；${latest ? latest.status === 'stale' ? '输入已变化，需要重新计算' : latest.totals.gapSeconds === null ? '输入待补充' : `最近缺口 ${latest.totals.gapSeconds / 3600}h` : '尚未计算'}；${proposals.filter((p: { status: string }) => p.status === 'hr_approved').length} 项已批准，${proposals.filter((p: { execution?: { status: string } }) => p.execution?.status === 'executed').length} 项已执行`);
+    }).catch(error => { if (active) setProduction(error.message); });
+    return () => { active = false; };
+  }, [data, focus]);
+
   const [filter, setFilter] = useState('全部');
   const isHR = data.actor.role === 'hr';
   const isEmployee = data.actor.role === 'employee';
@@ -56,6 +72,8 @@ export function DashboardPage({ data, navigate, openKnowledge, focus }: PageProp
   }
   return <div className="v2-dashboard-page">
     <PageHeader title="人才协同工作台" description={isEmployee ? '从当前任务出发，办理日常事务，继续岗位学习与演练。' : '从当前的人与任务出发，推进招聘、员工服务与岗位培养。'} actions={<span className="v2-date"><IconCalendar size={15} />{data.today.replaceAll('-', '.')}</span>} />
+    {!isEmployee && <section className="v2-card"><h2>从订单识别能力缺口</h2><p>{production}</p><p>订单 → 缺口 → 人才路径 → 人工审核 → 执行反馈。无结果时先准备生产输入；批准与执行分别留痕。</p><button className="v2-button primary" onClick={() => navigate({ page: 'order2people' })}>开始生产需求诊断</button></section>}
+
     <div className="v2-metric-strip">{metrics.map(metric => <button key={metric.label} className="v2-metric-item" onClick={() => navigate(metric.target)}><div><span>{metric.label}</span><metric.icon size={18} /></div><strong>{metric.value}<small>{metric.suffix}</small></strong></button>)}</div>
     <div className="v2-dashboard-main"><section className="v2-card v2-priority-work"><div className="v2-card-header"><div><h2>现在需要推进</h2><p>选择一个人或事项，继续完成下一步</p></div><StatusBadge tone="blue">{work.length} 项可推进</StatusBadge></div>
       {isHR && <div className="v2-stage-track" aria-label="招聘与入职阶段">{[{ label: '筛选', count: data.candidates.filter(item => item.stage === 'screening').length, target: { page: 'recruitment' as const, stage: 'screening' as const } }, { label: '面试', count: data.candidates.filter(item => item.stage === 'interview').length, target: { page: 'recruitment' as const, stage: 'interview' as const } }, { label: '待决策', count: data.candidates.filter(item => item.stage === 'decision').length, target: { page: 'recruitment' as const, stage: 'decision' as const } }, { label: '入职', count: pendingOnboarding.length, target: { page: 'onboarding' as const } }].map(stage => <button key={stage.label} onClick={() => navigate(stage.target)}><span>{stage.label}</span><strong>{stage.count}</strong><IconChevronRight size={14} /></button>)}</div>}

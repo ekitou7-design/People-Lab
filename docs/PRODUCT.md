@@ -1,6 +1,9 @@
 # People-Lab 产品定位与阶段规划
 
-状态：第一阶段交付候选；2026-10-31。产品与仓库名称统一为 People-Lab。验收证据见 ORDER2PEOPLE-DELIVERY.md，后续模块仍为规划。
+> 当前交付导航（2026-10-31）：[评委上手](JUDGES-QUICKSTART.md) · [使用说明](USER-GUIDE.md) · [队友移交](HANDOFF.md) · [文档索引](README.md)。本任务集成入口为PR #5，含PR #4依赖；以GitHub确认合并状态。下文原阶段/验证记录保留对应时间语境。
+
+
+状态：2026-10-31。产品与仓库名称统一为 People-Lab。阶段一 Order2People、阶段二 SkillBridge、阶段三人才执行闭环（SkillBridge 方案→真实招聘需求草稿/培训任务/内部调配容量占用）均已实现并提交 PR，待团队审核合并；验收证据见 ORDER2PEOPLE-DELIVERY.md 与各阶段 PR 描述。Capability Graph、Talent Simulator、Talent Agent 仍为规划，未实现。
 
 ## 现状与依据
 
@@ -41,16 +44,21 @@ People-Lab 面向智能制造，将生产需求、人员技能、能力缺口、
 | Talent Simulator | 比较调配、招聘、培训等假设 | 复用快照与引擎；假设结果单独标记 |
 | Talent Agent | 在授权下执行任务并反馈结果 | 关联需求与执行记录，不能绕过确认 |
 
-模块共享稳定标识、版本和证据。SkillBridge 建议、课程完成、Agent 反馈均不能直接改写资格或历史计算。现有 HR-V2 功能保留，未来连接招聘/培训须另行确认映射与业务授权。
+模块共享稳定标识、版本和证据。SkillBridge 建议、课程完成、Agent 反馈均不能直接改写资格或历史计算。现有 HR-V2 功能保留；SkillBridge 与招聘/培训的连接已在第三阶段按明确授权实现（见 WORKSTREAMS.md 第三阶段记录），仅限 HR 已批准方案的人工执行动作，不自动批准人事决策、不自动把培训完成或内部调配转为正式资格。Talent Agent 的自动执行仍为规划，未实现。
 
 ## 阶段与成功标准
 
-1. 阶段一 Order2People：订单人工录入/结构化草稿、标准工艺引用、资格与可用工时校验、确定性分配、缺口解释、SkillBridge JSON 输出。通过 PHASE-1-PRD 验收后才称已实现。
-2. 阶段二 SkillBridge：审阅技能迁移与培养路径，验证资格后更新供给；本轮不实现。
-3. 后续阶段：能力依赖分析、方案仿真、受控 Agent 执行。顺序与范围待另行评审，不承诺时间。
+1. 阶段一 Order2People：订单人工录入/结构化草稿、标准工艺引用、资格与可用工时校验、确定性分配、缺口解释、SkillBridge JSON 输出。已实现，见 ORDER2PEOPLE-DELIVERY.md。
+2. 阶段二 SkillBridge：只读消费已确认 Order2People 需求，内部人才分类、技能差距分析、三类供给路径建议、HR 审核留痕。已实现。
+3. 阶段三 人才执行闭环：HR 对已批准的 SkillBridge 方案执行真实写入——内部培养生成 Training 模块的真实任务（回链原分析，完成不自动等于资格）、外部招聘生成 Recruitment 模块的需求草稿（不自动生成候选人）、内部调配生成 Order2People 的真实容量占用（按既有规则使相关计算过期）。已实现，待团队审核。
+4. 后续阶段：能力依赖分析（Capability Graph）、方案仿真（Talent Simulator）、受控 Agent 执行（Talent Agent）。顺序与范围待另行评审，不承诺时间，均未实现。
 
 阶段一成功指标：每项结果可回溯到输入版本与分配明细；人员可用工时不被重复计入；关键数据缺失时不输出最终缺口；订单变更后旧结果明确过期；结构化需求可独立读取。禁止以演示人数或 AI 自由文本替代计算。
 
 非目标：完整 APS 排产、设备/物料约束优化、真实招聘自动投递、自动认证、工资核算、生产互联网部署。阶段一结论是约定人力与时间桶模型内的覆盖缺口，不宣称订单必然可交付。
 
 入口：[阶段一 PRD](PHASE-1-PRD.md) · [接口](API-CONTRACTS.md) · [分工](WORKSTREAMS.md)。
+
+## 2026-10-31 修复说明入口
+
+[使用说明](USER-GUIDE.md) · [队友及 Agent 移交](HANDOFF.md) · [本轮验证](VALIDATION.md)。容量以未承诺增量为准，资格覆盖完整需求窗口；部分时段调配无法证明区间时显式阻断。历史发布/阶段记录不是本轮验收。
