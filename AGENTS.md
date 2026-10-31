@@ -1,6 +1,6 @@
 # People-Lab 协作入口
 
-TalentFoundry Order2People 第一阶段交付候选；HR-V2 保留。验收证据与演示见 docs/ORDER2PEOPLE-DELIVERY.md。
+People-Lab Order2People 第一阶段交付候选；HR-V2 保留。验收证据与演示见 docs/ORDER2PEOPLE-DELIVERY.md。
 
 ## 开始前
 - 阅读 [产品定位](docs/PRODUCT.md) → [阶段一 PRD](docs/PHASE-1-PRD.md) → [数据与接口](docs/API-CONTRACTS.md) → [分工](docs/WORKSTREAMS.md)。现有运行说明见 README.md，现有 API 以 shared/API.md、shared/contracts.ts 和服务端实现为准。
