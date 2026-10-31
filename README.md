@@ -212,3 +212,9 @@ API 说明见 [shared/API.md](shared/API.md)，数据约定见 [shared/contracts
 演示身份可从页面切换，`x-demo-actor` 可被调用者指定，不具备生产认证安全性；本版仅面向本机演示，不适合直接开放到互联网。
 
 后续可在现有业务校验与数据关联基础上接入真实模型、文档检索、简历解析、账号认证和外部系统。本地 Demo 尚未实现这些能力。
+
+## TalentFoundry / Order2People 第一阶段
+
+新增“生产需求与能力”入口，保留 HR-V2 原有功能。人工订单/工艺/资格/日历/占用 → 共享人员容量诊断 → HR 确认 → SkillBridge JSON。无 AI 模型接入，不推断招聘人数。
+
+演示、限制、验证和交付状态见 [Order2People 交付记录](docs/ORDER2PEOPLE-DELIVERY.md)，字段及端点见 [API 契约](docs/API-CONTRACTS.md)。新增浏览器检查：`npm run test:order2people:e2e`；使用已安装 Chrome 时可设置 `PLAYWRIGHT_CHANNEL=chrome`。

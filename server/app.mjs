@@ -1,4 +1,5 @@
 import express from 'express';
+import { order2peopleRouter } from './order2people-api.mjs';
 import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -493,6 +494,7 @@ export function createApp({ dataDir = join(projectRoot, 'data') } = {}) {
     store.reset();
     res.json({ ok: true });
   });
+  api.use('/v1/order2people', order2peopleRouter(store));
   api.use((_req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: '未找到该 API。' } }));
   app.use('/api', api);
   // Only the compiled frontend is public; source and database files are never mounted.
