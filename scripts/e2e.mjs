@@ -105,7 +105,7 @@ try {
   const candidate = initial.candidates.find(item => item.id === 'cand-chen');
   assert.ok(candidate, 'Chen candidate exists');
 
-  browser = await chromium.launch({ headless: true });
+  browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}) });
   const context = await browser.newContext({ viewport: { width: 1440, height: 1080 }, locale: 'zh-CN', timezoneId: 'Asia/Shanghai', reducedMotion: 'reduce' });
   await context.route('**/*', route => {
     const url = new URL(route.request().url());

@@ -3,6 +3,7 @@ import { IconArrowRight, IconBuildingFactory2, IconRefresh, IconShieldCheck, Ico
 import type { Bootstrap } from '../../shared/contracts';
 import type { KnowledgeTarget, Mutate, NavigationTarget, Page, PageProps } from './types';
 import { WorkspaceShell } from './WorkspaceShell';
+import { Order2PeoplePage } from './Order2PeoplePage';
 import { DashboardPage } from './DashboardPage';
 import { RecruitmentPage } from './RecruitmentPage';
 import { OnboardingPage } from './OnboardingPage';
@@ -97,6 +98,7 @@ export default function WorkbenchApp() {
   return <WorkspaceShell key={data.actor.id} data={data} page={target.page} busy={busy} onNavigate={navigate} onActorChange={switchActor} onOpenGuide={() => setGuideOpen(true)} onOpenReset={() => { setResetError(''); setResetOpen(true); }}>
     {error && <div className="v2-global-error" role="alert"><span>{error}</span><button className="v2-button secondary" disabled={busy} onClick={() => refresh().then(() => setError('')).catch(reason => setError(reason.message))}>重新同步</button><button className="v2-icon-button" aria-label="关闭提示" onClick={() => setError('')}><IconX size={18} /></button></div>}
     {Object.entries(contexts).map(([page, focus]) => <div key={`${pageKey}-${page}`} style={{ display: target.page === page ? undefined : 'none' }} aria-hidden={target.page !== page || undefined}>
+      {page === 'order2people' && data.actor.role !== 'employee' && <Order2PeoplePage {...pageProps} />}
       {page === 'dashboard' && <DashboardPage {...pageProps} focus={focus} />}
       {page === 'recruitment' && <RecruitmentPage {...pageProps} focus={focus} />}
       {page === 'onboarding' && <OnboardingPage {...pageProps} focus={focus} />}

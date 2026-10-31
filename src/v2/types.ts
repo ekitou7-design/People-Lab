@@ -1,6 +1,6 @@
 import type { Bootstrap, Candidate } from '../../shared/contracts';
 
-export type Page = 'dashboard' | 'recruitment' | 'onboarding' | 'service' | 'training' | 'knowledge';
+export type Page = 'order2people' | 'dashboard' | 'recruitment' | 'onboarding' | 'service' | 'training' | 'knowledge';
 export interface NavigationTarget {
   page: Page;
   candidateId?: string;
