@@ -22,7 +22,7 @@ const executionLabels = { not_executed: '尚未落地执行', executed: '已落�
 const executionTones: Record<string, Tone> = { not_executed: 'gray', executed: 'green', blocked_stale: 'red' };
 const refTypeLabels = { training_task: '培训任务', requisition: '招聘需求草稿', capacity_reservation: '容量占用' } as const;
 
-export function SkillBridgePage({ data, navigate, focus }: PageProps) {
+export function SkillBridgePage({ data, navigate, focus, refreshData }: PageProps) {
   const [calculations, setCalculations] = useState<CalculationSnapshot[]>([]);
   const [cases, setCases] = useState<SkillBridgeCase[]>([]);
   const [activeCaseId, setActiveCaseId] = useState(focus?.caseId || '');
@@ -53,7 +53,7 @@ export function SkillBridgePage({ data, navigate, focus }: PageProps) {
   useEffect(() => { if (focus?.caseId) setActiveCaseId(focus.caseId); }, [focus?.caseId]);
   const act = async (fn: () => Promise<void>) => {
     setBusy(true); setError('');
-    try { await fn(); await refresh(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+    try { await fn(); await refresh(); try { await refreshData?.(); } catch { setError("已创建，暂未同步。请重试同步，勿重复执行。"); } } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   };
 
   // Confirmed + complete + non-stale calculations with at least one uncovered gap line are
@@ -111,7 +111,7 @@ export function SkillBridgePage({ data, navigate, focus }: PageProps) {
       description="只读消费 Order2People 已确认需求：内部有没有合适的人？没有现成人选时谁具备可迁移技能？什么时候必须考虑外部招聘？"
       actions={data.actor.role === 'hr' && <button className="v2-button secondary compact" disabled={busy} onClick={() => void act(async () => { await request(`${sbBase}/demo/reset`, { requestKey: crypto.randomUUID() }); })}>载入内部人才演示样例</button>} />
     <p className="v2-notice"><IconShieldCheck size={17} />技能匹配基于已验证资格与人工证据，不使用大模型推理；培训完成或简历关键词不会被当作正式资格。</p>
-    {error && <p role="alert" className="v2-form-error">{error}</p>}
+    {error && <p role="alert" className="v2-form-error">{error}{error.includes("暂未同步") && <button disabled={busy} onClick={() => void act(async () => {})}>重试同步</button>}</p>}
 
     <div className="sb-grid">
       <article className="v2-card sb-demand-list">

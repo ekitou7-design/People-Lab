@@ -19,6 +19,7 @@ export interface NavigationTarget {
 export interface KnowledgeTarget { knowledgeId: string; sectionId?: string; quote?: string }
 export type Mutate = <T = unknown>(path: string, body?: unknown, method?: 'POST' | 'PATCH') => Promise<T>;
 export interface PageProps {
+  refreshData?: () => Promise<unknown>;
   data: Bootstrap;
   busy: boolean;
   mutate: Mutate;
