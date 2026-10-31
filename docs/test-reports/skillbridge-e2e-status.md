@@ -1,19 +1,23 @@
-# SkillBridge E2E 状态（2026-10-31）
+# SkillBridge E2E 状态（2026-10-31，更新：移动端导航修复后）
 
-结论：SkillBridge 浏览器 E2E 未通过（16 项检查通过，第 17 项失败）。本文不声称其通过。
+结论：SkillBridge 浏览器 E2E 全部通过（18 项检查全部通过，含 390px 无横向溢出断言）。
 
 ## 环境
 `PLAYWRIGHT_CHANNEL=chrome npm run test:skillbridge:e2e`，使用系统 Chrome，临时数据库，未下载 Chromium。
 
-## 已通过的检查（16）
-Order2People 2h 缺口；从生产需求页进入 SkillBridge；列出缺口；发起分析；演示员工标注为虚构；分类为潜在可迁移；展示核验动作；三类路径可见；HR 批准并留痕；跳转培训工作台；跳转招聘工作台；刷新后审核结果保留；上游过期后案例冻结且无审核入口。
+## 修复内容
+- 文件：`scripts/skillbridge-e2e.mjs`（移动端布局检查段，约第 120-130 行）。
+- 根因：导航侧栏在 ≤860px 时通过 CSS（`src/v2/v2.css` 第 24 行 `@media(max-width:860px)`）折叠为 `transform:translateX(-100%); visibility:hidden`，按钮节点仍在 DOM 中但不可见/不可交互。脚本在 `setViewportSize(390x844)` 后直接点击 `SkillBridge` 导航按钮，命中隐藏节点导致超时，而非产品缺陷。
+- 修复：在点击 `SkillBridge` 前，用 `page.getByRole('button', { name: '打开导航' }).isVisible()` 判断导航是否已折叠；若折叠，先点击该按钮展开侧栏（对应 `src/v2/WorkspaceShell.tsx` 第 44 行的汉堡菜单按钮，`aria-label` 随展开状态在"打开导航"/"关闭导航"间切换），再点击 `SkillBridge`。未使用固定等待时间或盲目重复点击，仅做一次条件判断+点击。
+- 未改动任何业务断言；390px 下 `document.documentElement.scrollWidth <= innerWidth + 1` 的检查原样保留。
 
-## 失败项
-- 步骤：390px 移动端布局检查（scripts/skillbridge-e2e.mjs 约第 122 行）
-- 错误：`locator.click: Timeout 30000ms exceeded. waiting for getByRole('button', { name: 'SkillBridge', exact: true })`
-- 复现：`PLAYWRIGHT_CHANNEL=chrome npm run test:skillbridge:e2e`；脚本在 `setViewportSize(390x844)` 后直接点击侧栏按钮。
-- 判断：测试脚本问题，非产品缺陷。移动端侧栏默认折叠（order2people-e2e 也断言此行为），须先点击"打开导航"。该判断来自代码阅读，未再运行验证。
-- 阻塞原因：已用完约定的修复次数，按指示停止重试。未验证项：390px 无横向溢出。
+## 已通过的检查（18）
+Order2People 2h 缺口；从生产需求页进入 SkillBridge；列出缺口；发起分析；演示员工标注为虚构；分类为潜在可迁移；展示核验动作；三类路径可见；HR 批准并留痕；跳转培训工作台；跳转招聘工作台；刷新后审核结果保留；上游过期后案例冻结且无审核入口；**390px SkillBridge 布局无横向溢出（已修复通过）**；无浏览器运行时错误。
+
+## 回归验证
+- `PLAYWRIGHT_CHANNEL=chrome npm run test:skillbridge:e2e` → 18/18 通过。
+- `npm run build` → 通过（tsc --noEmit + vite build 无错误）。
+- `npm test` → 32/32 通过，无回归。
 
 ## 过程中的发现
 - 真实产品缺陷（已修复）：SkillBridge 页面保持挂载，进入时不重新加载上游计算，导致缺口列表为空。已改为每次导航刷新。

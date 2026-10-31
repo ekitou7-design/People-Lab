@@ -119,6 +119,13 @@ try {
 
   // --- Mobile layout sanity: no horizontal overflow.
   await page.setViewportSize({ width: 390, height: 844 });
+  // Below the 860px breakpoint the sidebar collapses (visibility:hidden) and a
+  // "打开导航" toggle appears to expand it. Check for that toggle instead of
+  // blindly clicking the nav item, which would hit a hidden, non-actionable button.
+  const menuToggle = page.getByRole('button', { name: '打开导航' });
+  if (await menuToggle.isVisible()) {
+    await menuToggle.click();
+  }
   await page.getByRole('button', { name: 'SkillBridge', exact: true }).click();
   const bounds = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, width: innerWidth }));
   check(bounds.scroll <= bounds.width + 1, '390px SkillBridge layout has no page overflow');
