@@ -4,6 +4,7 @@ import type { Candidate, Employee, Evidence } from '../../shared/contracts';
 import type { RecruitmentRequisition } from '../../shared/skillbridge';
 import type { PageProps } from './types';
 import { Avatar, Dialog, EmptyState, HighlightText, PageHeader, StatusBadge, type Tone } from './ui';
+import './Recruitment.css';
 
 type StageFilter = Candidate['stage'] | 'all';
 const stageLabels: Record<Candidate['stage'], string> = { screening: '待筛选', interview: '待面试', decision: '待决策', hired: '已录用' };

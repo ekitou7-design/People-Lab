@@ -1,0 +1,585 @@
+.v2-recruitment-page {
+  min-width: 0;
+}
+
+.v2-recruitment-page .v2-page-header {
+  align-items: center;
+}
+
+.v2-recruitment-page .v2-view-switch {
+  gap: 5px;
+  padding: 4px;
+  border-color: var(--v2-line);
+  border-radius: 11px;
+  box-shadow: 0 2px 6px #284c7804;
+}
+
+.v2-recruitment-page .v2-view-switch button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.v2-recruitment-page .v2-view-switch button.selected {
+  background: var(--v2-primary-soft);
+  color: var(--v2-primary);
+  box-shadow: inset 0 0 0 1px #dce8fb;
+}
+
+.v2-recruitment-page .v2-recruitment-layout {
+  grid-template-columns: 230px minmax(0, 1.08fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.v2-recruitment-page .v2-candidate-queue,
+.v2-recruitment-page .v2-evidence-review,
+.v2-recruitment-page .v2-resume-panel {
+  min-height: calc(100dvh - 238px);
+  border-color: var(--v2-line);
+  background: #fff;
+}
+
+.v2-recruitment-page .v2-candidate-queue > .v2-card-header,
+.v2-recruitment-page .v2-evidence-review > .v2-card-header,
+.v2-recruitment-page .v2-resume-panel > .v2-card-header {
+  padding: 21px 19px 17px;
+}
+
+.v2-recruitment-page .v2-candidate-queue > .v2-card-header {
+  border-bottom: 1px solid #edf1f7;
+}
+
+.v2-recruitment-page .v2-candidate-queue > .v2-card-header h2,
+.v2-recruitment-page .v2-evidence-review > .v2-card-header h2,
+.v2-recruitment-page .v2-resume-panel > .v2-card-header h2 {
+  font-size: 15px;
+}
+
+.v2-recruitment-page .v2-candidate-filter {
+  padding: 16px 16px 12px;
+}
+
+.v2-recruitment-page .v2-candidate-filter > span {
+  color: #7387a3;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.v2-recruitment-page .v2-candidate-filter select {
+  padding: 9px 10px;
+  border-color: #e0e7f2;
+  background: #f9fbfe;
+}
+
+.v2-recruitment-page .v2-candidate-list {
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.v2-recruitment-page .v2-candidate-row {
+  position: relative;
+  padding: 15px 13px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.v2-recruitment-page .v2-candidate-row:hover {
+  border-color: #e1eaf7;
+  background: #f8faff;
+}
+
+.v2-recruitment-page .v2-candidate-row.selected {
+  border-color: #d4e3fa;
+  background: #eff5ff;
+  box-shadow: inset 3px 0 #4d83df;
+}
+
+.v2-recruitment-page .v2-candidate-row.selected:hover {
+  border-color: #c1d7f8;
+  background: #eaf2ff;
+}
+
+.v2-recruitment-page .v2-candidate-row > div {
+  gap: 9px;
+}
+
+.v2-recruitment-page .v2-candidate-row strong {
+  color: #334a6b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.v2-recruitment-page .v2-candidate-row p {
+  margin: 9px 0;
+  color: #7a8ca5;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.v2-recruitment-page .v2-candidate-row.selected strong,
+.v2-recruitment-page .v2-candidate-row.selected > div > svg {
+  color: #285cb8;
+}
+
+.v2-recruitment-page .v2-candidate-footnote {
+  margin: 18px 14px 14px;
+  padding: 15px 5px 0;
+  border-top: 1px solid #edf1f7;
+  color: #8596ac;
+  font-size: 12px;
+}
+
+.v2-recruitment-page .v2-candidate-footnote svg {
+  color: #6b91c9;
+}
+
+.v2-recruitment-page .v2-ability-tabs {
+  gap: 8px;
+  padding: 0 19px 19px;
+  border-bottom: 1px solid #edf1f7;
+}
+
+.v2-recruitment-page .v2-ability-tabs button {
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.v2-recruitment-page .v2-ability-tabs button.supported { background: #eff8f3; color: #367a62; }
+.v2-recruitment-page .v2-ability-tabs button.unverified { background: #fff7e9; color: #906b2b; }
+.v2-recruitment-page .v2-ability-tabs button.gap { background: #f5f1fc; color: #7b5dad; }
+
+.v2-recruitment-page .v2-ability-tabs button.selected {
+  border-color: #b8cff3;
+  background: #eaf2ff;
+  color: #285fb9;
+  box-shadow: 0 0 0 2px #edf3ff;
+}
+
+.v2-recruitment-page .v2-evidence-body {
+  padding: 19px 19px 18px;
+}
+
+.v2-recruitment-page .v2-selected-evidence {
+  min-height: 174px;
+  padding: 19px 18px;
+  border: 1px solid #dce8fa;
+  border-radius: 12px;
+  background: #f0f5ff;
+}
+
+.v2-recruitment-page .v2-selected-evidence.unverified {
+  border-color: #f0e5ce;
+  background: #fffbf3;
+}
+
+.v2-recruitment-page .v2-selected-evidence.gap {
+  border-color: #e9dff6;
+  background: #faf7ff;
+}
+
+.v2-recruitment-page .v2-selected-evidence h3 {
+  color: #2c456c;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.v2-recruitment-page .v2-selected-evidence > p {
+  color: #415978;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.v2-recruitment-page .v2-selected-evidence .v2-evidence-summary {
+  color: #637c9e;
+  font-size: 13px;
+}
+
+.v2-recruitment-page .v2-selected-evidence blockquote {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #dbe7f8;
+  color: #3d6db9;
+  font-size: 13px;
+}
+
+.v2-recruitment-page .v2-selected-evidence.unverified blockquote {
+  border-color: #eee4d1;
+  color: #8a6b36;
+}
+
+.v2-recruitment-page .v2-interview-questions {
+  padding-top: 22px;
+}
+
+.v2-recruitment-page .v2-interview-questions h3 {
+  color: #344b6b;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.v2-recruitment-page .v2-interview-questions ol {
+  margin-top: 14px;
+}
+
+.v2-recruitment-page .v2-interview-questions li {
+  gap: 10px;
+  margin-bottom: 13px;
+}
+
+.v2-recruitment-page .v2-interview-questions li > span {
+  display: inline-flex;
+  flex: 0 0 23px;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 23px;
+  margin-top: 1px;
+  border-radius: 7px;
+  background: #f0f4fa;
+  color: #6c84a5;
+  font-size: 10px;
+}
+
+.v2-recruitment-page .v2-interview-questions li p {
+  color: #4d6280;
+  font-size: 13px;
+}
+
+.v2-recruitment-page .v2-evidence-caution {
+  margin-top: 17px;
+  padding-top: 13px;
+  border-top: 1px solid #edf1f7;
+  color: #8193ab;
+}
+
+.v2-recruitment-page .v2-evidence-caution p {
+  font-size: 12px;
+}
+
+.v2-recruitment-page .v2-review-actions {
+  padding: 18px 19px 19px;
+  border-color: #e5ecf6;
+  border-radius: 0 0 var(--v2-radius) var(--v2-radius);
+  background: #fbfcff;
+}
+
+.v2-recruitment-page .v2-stage-update {
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.v2-recruitment-page .v2-stage-update select,
+.v2-recruitment-page .v2-stage-update > .v2-button {
+  min-height: 38px;
+  background: #fff;
+}
+
+.v2-recruitment-page .v2-stage-update > .v2-button {
+  font-weight: 500;
+}
+
+.v2-recruitment-page .v2-review-actions > .v2-button.primary {
+  min-height: 43px;
+}
+
+.v2-recruitment-page .v2-resume-panel > .v2-card-header > svg {
+  color: #7393bf;
+}
+
+.v2-recruitment-page .v2-source-current {
+  gap: 8px;
+  margin: 0 19px 12px;
+  padding: 9px 11px;
+  border: 1px solid #e1eafa;
+  border-radius: 8px;
+  background: #f3f7ff;
+  color: #4b74b7;
+  font-size: 12px;
+}
+
+.v2-recruitment-page .v2-source-body {
+  padding: 0 19px;
+  scrollbar-color: #cbd9ec transparent;
+  scrollbar-width: thin;
+}
+
+.v2-recruitment-page .v2-source-body > section {
+  padding: 18px 0;
+  border-color: #eaf0f7;
+}
+
+.v2-recruitment-page .v2-source-body > section.current {
+  margin-bottom: 12px;
+  padding: 16px 14px;
+  border-color: #d3e2f8;
+  border-radius: 10px;
+  background: #f5f9ff;
+  box-shadow: inset 3px 0 #8fb4ed;
+}
+
+.v2-recruitment-page .v2-source-body h3 {
+  color: #405775;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.v2-recruitment-page .v2-source-body p {
+  color: #536986;
+  font-size: 13px;
+  line-height: 2;
+}
+
+.v2-recruitment-page .v2-source-footer {
+  margin-top: 15px;
+  padding: 16px 19px 18px;
+  border-color: #e5ecf6;
+  background: #fbfcff;
+}
+
+.v2-recruitment-page .v2-source-footer p {
+  font-size: 12px;
+}
+
+.v2-recruitment-page .v2-source-footer .v2-text-button {
+  margin-top: 10px;
+}
+
+.v2-recruitment-page .v2-requisition-panel {
+  margin-bottom: 20px;
+}
+
+.v2-recruitment-page .v2-requisition-list {
+  gap: 12px;
+  padding: 0 19px 19px;
+}
+
+.v2-recruitment-page .v2-requisition-row {
+  padding: 16px;
+  border-color: #e1eaf6;
+  border-radius: 11px;
+  background: #f8faff;
+}
+
+.v2-recruitment-page .v2-requisition-link-form select {
+  border-radius: 8px;
+  background: #fff;
+}
+
+.v2-recruitment-page .v2-compare-panel {
+  overflow: hidden;
+}
+
+.v2-recruitment-page .v2-comparison-cell:hover {
+  background: #f5f8ff;
+}
+
+.v2-recruitment-page .v2-mobile-review-tabs {
+  border: 1px solid #e0e8f4;
+  border-radius: 10px;
+  background: #eaf0f9;
+}
+
+.v2-recruitment-page .v2-mobile-review-tabs > button.selected {
+  color: var(--v2-primary);
+  box-shadow: 0 2px 6px #304b720d;
+}
+
+@media (min-width: 1600px) {
+  .v2-recruitment-page .v2-recruitment-layout {
+    grid-template-columns: 240px minmax(0, 1.08fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1250px) {
+  .v2-recruitment-page .v2-recruitment-layout {
+    grid-template-columns: 215px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .v2-recruitment-page .v2-candidate-queue,
+  .v2-recruitment-page .v2-evidence-review {
+    min-height: 640px;
+  }
+
+  .v2-recruitment-page .v2-resume-panel {
+    min-height: 450px;
+  }
+
+  .v2-recruitment-page .v2-source-body {
+    max-height: 470px;
+  }
+}
+
+@media (max-width: 1030px) {
+  .v2-recruitment-page .v2-recruitment-layout {
+    grid-template-columns: 196px minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .v2-recruitment-page .v2-candidate-list {
+    padding: 0 10px;
+  }
+
+  .v2-recruitment-page .v2-candidate-row {
+    padding: 13px 10px;
+  }
+
+  .v2-recruitment-page .v2-candidate-row .v2-avatar {
+    display: none;
+  }
+
+  .v2-recruitment-page .v2-candidate-filter {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .v2-recruitment-page .v2-evidence-body,
+  .v2-recruitment-page .v2-review-actions {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .v2-recruitment-page .v2-ability-tabs {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+}
+
+@media (max-width: 860px) {
+  .v2-recruitment-page .v2-recruitment-layout {
+    grid-template-columns: 196px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .v2-recruitment-page .v2-view-switch {
+    border-radius: 10px;
+  }
+
+  .v2-recruitment-page .v2-recruitment-layout {
+    gap: 14px;
+  }
+
+  .v2-recruitment-page .v2-ability-tabs button {
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .v2-recruitment-page .v2-recruitment-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .v2-recruitment-page .v2-candidate-queue {
+    min-height: 0;
+  }
+
+  .v2-recruitment-page .v2-candidate-queue > .v2-card-header {
+    padding: 18px 16px 13px;
+    border-bottom: 0;
+  }
+
+  .v2-recruitment-page .v2-candidate-filter {
+    gap: 10px;
+    padding: 0 16px 13px;
+  }
+
+  .v2-recruitment-page .v2-candidate-filter select {
+    width: min(180px, 100%);
+  }
+
+  .v2-recruitment-page .v2-candidate-list {
+    gap: 9px;
+    padding: 0 15px 15px;
+    scrollbar-width: thin;
+  }
+
+  .v2-recruitment-page .v2-candidate-row {
+    flex-basis: 150px;
+    width: 150px;
+    padding: 13px 12px;
+    border-color: #e3eaf5;
+    border-radius: 10px;
+  }
+
+  .v2-recruitment-page .v2-candidate-row.selected {
+    border-color: #bfd5f5;
+  }
+
+  .v2-recruitment-page .v2-candidate-row strong {
+    font-size: 13px;
+  }
+
+  .v2-recruitment-page .v2-candidate-row p {
+    font-size: 12px;
+  }
+
+  .v2-recruitment-page .v2-mobile-review-tabs {
+    margin-bottom: 1px;
+  }
+
+  .v2-recruitment-page .v2-evidence-review,
+  .v2-recruitment-page .v2-resume-panel {
+    min-height: 0;
+  }
+
+  .v2-recruitment-page .v2-evidence-review > .v2-card-header,
+  .v2-recruitment-page .v2-resume-panel > .v2-card-header {
+    padding: 19px 17px 15px;
+  }
+
+  .v2-recruitment-page .v2-evidence-body {
+    padding: 17px;
+  }
+
+  .v2-recruitment-page .v2-selected-evidence {
+    padding: 17px 15px;
+  }
+
+  .v2-recruitment-page .v2-ability-tabs {
+    gap: 7px;
+    padding: 0 17px 17px;
+  }
+
+  .v2-recruitment-page .v2-review-actions {
+    padding: 17px;
+    border-radius: 0 0 var(--v2-radius) var(--v2-radius);
+  }
+
+  .v2-recruitment-page .v2-source-current {
+    margin-right: 17px;
+    margin-left: 17px;
+  }
+
+  .v2-recruitment-page .v2-source-body {
+    padding: 0 17px;
+  }
+
+  .v2-recruitment-page .v2-source-footer {
+    padding: 16px 17px 18px;
+  }
+
+  .v2-recruitment-page .v2-requisition-list {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .v2-recruitment-page .v2-requisition-link-form {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 360px) {
+  .v2-recruitment-page .v2-stage-update {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .v2-recruitment-page .v2-selected-evidence > div {
+    flex-wrap: wrap;
+  }
+}
