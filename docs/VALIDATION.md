@@ -90,3 +90,25 @@ test-results/order2people/desktop.png、tablet.png、mobile.png为1440/1024/390�
 ### 浅色工作台整合 PR #8 后复测
 
 合并远端 main `d97b267` 时保留阶段 B 文案记录与本轮样式记录，三份文档冲突均按双方追加内容解决，招聘页仅自动合并样式引入。首次四组浏览器回归在导航步骤等待新名称超时；实际源码、构建及独立端口页面均确认 PR #8 导航存在后，重新运行标准测试。最终 `npm run build`、`npm test`（51/51）、HR 浏览器 52 项、Order2People 11 项、SkillBridge 20 项、人才执行 14 项、`npm run test:audit`（12 场景及 4 边界）全部退出0；没有修改或跳过断言，也没有将首次超时计为通过。
+
+## 2026-11-01 过期内容清理与运行复核
+
+基线为已合并 PR #10 后的 main `f4655a0`，分支 `docs/retire-stale-assets`。本轮删除 `docs/images/` 根目录五张已被替代且无当前引用的旧截图，保留 `current/` 五张当前图、`v2/` 十四张历史图及设计/发布/验收资料；更新产品定位、移交和文档导航的当前入口与阶段状态。没有改业务源码、接口、依赖或测试断言。
+
+本轮实测环境为 macOS、Node.js 24.14.1 和已安装的 Chrome，复用现有依赖。以下均为本轮重新执行，退出码全部为 0：
+
+| 检查 | 本轮结果 |
+| --- | --- |
+| `npm run build` | TypeScript 与 Vite 生产构建通过 |
+| `npm test` | 51/51，通过；0 失败、取消或跳过 |
+| `PLAYWRIGHT_CHANNEL=chrome npm run test:e2e` | HR 业务闭环及响应式检查 52 项通过 |
+| `PLAYWRIGHT_CHANNEL=chrome npm run test:order2people:e2e` | 生产用工检查 11 项通过 |
+| `PLAYWRIGHT_CHANNEL=chrome npm run test:skillbridge:e2e` | 人才方案检查 20 项通过 |
+| `PLAYWRIGHT_CHANNEL=chrome npm run test:talent-execution:e2e` | 人才执行检查 14 项通过 |
+| `npm run test:audit` | 12/12 问答场景、4/4 能力边界通过 |
+| 正式启动、静态资源与重启复核 | 独立临时库、两个实际 `npm start` 服务进程，共 10 项检查通过 |
+| 文档相对链接、图片引用及 `git diff --check` | 通过；删除的旧图未留下失效引用 |
+
+正式启动复核：新建独立临时数据目录、选择空闲回环端口，执行 `npm start`；健康接口校验项目路径与应用标识，HTML、构建后的 JavaScript/CSS 均成功返回，Chrome 实际打开驾驶舱与导航。通过真实 API 录用一名既有虚构候选人，确认候选人、待入职员工与清单保存；向核实 PID 的本轮服务发送 SIGTERM 后退出 0，再以同一临时目录启动新的 `npm start` 进程，逐项核对三类记录与重启前完全相同。Chrome 再次打开页面并进入招聘管理，无未捕获运行异常；第二进程也正常退出 0。
+
+所有业务测试和启动复核均使用自己的临时 SQLite 与独立端口；未访问或重置日常业务库。本轮临时服务已停止，启动复核临时目录已清理，日志与测试输出留作本地证据，不提交数据库、依赖或构建产物。本轮没有在 Windows 上重跑启停脚本，不将 macOS 结果扩张为新的 Windows 验收；正常停止重启通过也不代表断电恢复测试。部分时段调配、生产认证与真实模型边界保持不变。

@@ -1,11 +1,10 @@
 # People-Lab 产品定位与阶段规划
 
-> 当前交付导航（2026-10-31）：[评委上手](JUDGES-QUICKSTART.md) · [使用说明](USER-GUIDE.md) · [队友移交](HANDOFF.md) · [文档索引](README.md)。本任务集成入口为PR #5，含PR #4依赖；以GitHub确认合并状态。下文原阶段/验证记录保留对应时间语境。
+更新日期：2026-11-01。当前使用入口为 [main 源码与 README](../README.md)；[PR #10](https://github.com/ekitou7-design/People-Lab/pull/10) 已合并，本轮检查基线为 `f4655a0`。操作见 [评委上手](JUDGES-QUICKSTART.md) 和 [使用说明](USER-GUIDE.md)，开发见 [移交](HANDOFF.md)，实测结果见 [验证记录](VALIDATION.md)。
 
+阶段一 Order2People、阶段二 SkillBridge、阶段三人才执行闭环均已合入主分支；HR-V2 原有业务保留。当前导航包含生产用工、人才方案、管理驾驶舱、招聘管理、入职管理、员工服务、培训管理和企业知识库八个页面，按角色显示。Capability Graph、Talent Simulator、Talent Agent 自动执行仍未实现；部分时段调配受明确阻断限制。
 
-状态：2026-10-31。产品与仓库名称统一为 People-Lab。阶段一 Order2People、阶段二 SkillBridge、阶段三人才执行闭环（SkillBridge 方案→真实招聘需求草稿/培训任务/内部调配容量占用）均已实现并提交 PR，待团队审核合并；验收证据见 ORDER2PEOPLE-DELIVERY.md 与各阶段 PR 描述。Capability Graph、Talent Simulator、Talent Agent 仍为规划，未实现。
-
-## 现状与依据
+## HR-V2 历史基线与规划依据（2026-10-31）
 
 检查基线：main / origin/main `2d60c74a1f5775dca75ee46ee89107d39da42f9a`（HR-V2）。独立克隆初始工作区干净；远程当时仅见 main，GitHub 查询未返回开放 PR。无法据此判断队友未推送工作。
 
@@ -21,7 +20,7 @@
 
 已具备招聘录用→入职→员工服务/年假审批、SOP 培训与复练、知识引用及驾驶舱。演示身份由 x-demo-actor 指定，不是真实认证；问答、简历匹配和培训反馈为固定资料和规则，未接入 LLM/RAG。现有 Employee 不含可计算的技能资格、生产日历和任务占用；Position.headcount 是现有岗位字段，不能用作订单推算结果。
 
-依据：README.md、shared/API.md、shared/contracts.ts、server 实现及 docs/releases/HR-V2.md。历史报告记载 build、14 项接口、52 项浏览器检查通过；本轮仅检查源码与文档，未重跑业务测试。
+依据：README.md、shared/API.md、shared/contracts.ts、server 实现及 docs/releases/HR-V2.md。历史报告记载 build、14 项接口、52 项浏览器检查通过；当时仅检查源码与文档，未重跑业务测试。以下保留当时 HR-V2 的六页面与基础数据说明；当前主分支已新增 Order2People 和 SkillBridge 的资格、日历、占用与需求快照模型。
 
 ## 定位、用户与问题
 
@@ -32,17 +31,17 @@ People-Lab 面向智能制造，将生产需求、人员技能、能力缺口、
 | 生产主管 | 订单量难转成可复核的用工依据 | 确认工艺、数量、窗口和工时标准 |
 | HR/人才规划人员 | 岗位人数与实际可用能力脱节 | 看见按技能、资格和时段拆分的缺口 |
 | 工艺/资格数据维护者 | 标准版本、资质与实际执行不一致 | 提供有来源、有效期和责任人的基础数据 |
-| 管理者 | 招聘/调配/培训方案缺少共同基线 | 后续在同一需求快照上比较方案 |
+| 管理者 | 招聘/调配/培训方案缺少共同基线 | 在同一需求快照上查看人才路径与审核依据 |
 
-## 模块关系与长期方向（均为规划）
+## 模块关系与实现状态
 
-| 模块 | 职责 | 上下游 |
-| --- | --- | --- |
-| Order2People | 从订单与工序标准形成确定性能力工时缺口 | 接生产数据，输出需求快照 |
-| SkillBridge | 分析可迁移技能与待培养路径 | 接收需求快照；资格未确认不能计入供给 |
-| Capability Graph | 分析关键能力依赖及脆弱点 | 使用统一技能 ID 和来源关系 |
-| Talent Simulator | 比较调配、招聘、培训等假设 | 复用快照与引擎；假设结果单独标记 |
-| Talent Agent | 在授权下执行任务并反馈结果 | 关联需求与执行记录，不能绕过确认 |
+| 模块 | 职责 | 上下游 | 当前状态 |
+| --- | --- | --- | --- |
+| Order2People | 从订单与工序标准形成确定性能力工时缺口 | 接生产数据，输出需求快照 | 已实现 |
+| SkillBridge | 分析可迁移技能与待培养路径 | 接收需求快照；资格未确认不能计入供给 | 已实现 |
+| Capability Graph | 分析关键能力依赖及脆弱点 | 使用统一技能 ID 和来源关系 | 规划中，未实现 |
+| Talent Simulator | 比较调配、招聘、培训等假设 | 复用快照与引擎；假设结果单独标记 | 规划中，未实现 |
+| Talent Agent | 在授权下执行任务并反馈结果 | 关联需求与执行记录，不能绕过确认 | 规划中，未实现 |
 
 模块共享稳定标识、版本和证据。SkillBridge 建议、课程完成、Agent 反馈均不能直接改写资格或历史计算。现有 HR-V2 功能保留；SkillBridge 与招聘/培训的连接已在第三阶段按明确授权实现（见 WORKSTREAMS.md 第三阶段记录），仅限 HR 已批准方案的人工执行动作，不自动批准人事决策、不自动把培训完成或内部调配转为正式资格。Talent Agent 的自动执行仍为规划，未实现。
 
@@ -50,7 +49,7 @@ People-Lab 面向智能制造，将生产需求、人员技能、能力缺口、
 
 1. 阶段一 Order2People：订单人工录入/结构化草稿、标准工艺引用、资格与可用工时校验、确定性分配、缺口解释、SkillBridge JSON 输出。已实现，见 ORDER2PEOPLE-DELIVERY.md。
 2. 阶段二 SkillBridge：只读消费已确认 Order2People 需求，内部人才分类、技能差距分析、三类供给路径建议、HR 审核留痕。已实现。
-3. 阶段三 人才执行闭环：HR 对已批准的 SkillBridge 方案执行真实写入——内部培养生成 Training 模块的真实任务（回链原分析，完成不自动等于资格）、外部招聘生成 Recruitment 模块的需求草稿（不自动生成候选人）、内部调配生成 Order2People 的真实容量占用（按既有规则使相关计算过期）。已实现，待团队审核。
+3. 阶段三 人才执行闭环：HR 对已批准的 SkillBridge 方案执行真实写入——内部培养生成 Training 模块的真实任务（回链原分析，完成不自动等于资格）、外部招聘生成 Recruitment 模块的需求草稿（不自动生成候选人）、内部调配生成 Order2People 的真实容量占用（按既有规则使相关计算过期）。已实现并合入主分支；部分时段调配仍受明确阻断限制。
 4. 后续阶段：能力依赖分析（Capability Graph）、方案仿真（Talent Simulator）、受控 Agent 执行（Talent Agent）。顺序与范围待另行评审，不承诺时间，均未实现。
 
 阶段一成功指标：每项结果可回溯到输入版本与分配明细；人员可用工时不被重复计入；关键数据缺失时不输出最终缺口；订单变更后旧结果明确过期；结构化需求可独立读取。禁止以演示人数或 AI 自由文本替代计算。
