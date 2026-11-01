@@ -139,3 +139,5 @@ PR #6、#7 已合并，基线 main `e98a501`，独立分支 `refactor/product-co
 用户授权更新 GitHub README 及过期配图。基线为已同步的 main `4533b95`，当前无开放 PR；独立分支 `docs/refresh-readme-screenshots`。认领范围：`README.md`、`docs/images/current/` 新截图、本条认领记录。使用现有浏览器脚本、临时数据库与虚构样例采集当前界面；保留历史截图、业务源码和日常数据。通过 PR 交付，等待审核。
 
 本轮验证：`npm run build` 通过；`PLAYWRIGHT_CHANNEL=chrome npm run test:e2e` 通过52项检查；独立样例完成10/8/2计算、HR确认及人才方案分析并采集5张当前截图。未重跑接口测试与问答审计；历史图及报告保留原样。
+
+用户补充 README 内容清单：本轮同步完善项目简介、背景、核心功能、产品亮点、截图、技术架构、快速开始、使用流程、进度及团队致谢。以现有产品/使用文档与源码为依据，规划单独标注，未虚构成员职责、模型接入或许可。
